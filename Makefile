@@ -1,9 +1,9 @@
-NAME		:= philos
+NAME		:= philo
 CFLAGS		:= -Wall -Wextra -Werror -g
 CC 			:= cc
 
 SRC_PATH	:= src/
-SRC			:=
+SRC			:= philo.c
 SRCS		:= $(addprefix $(SRC_PATH), $(SRC))
 
 OBJ_PATH:= obj/
