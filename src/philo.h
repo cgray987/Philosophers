@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/03/18 16:12:02 by cgray            ###   ########.fr       */
+/*   Updated: 2024/03/19 15:48:21 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ typedef struct s_philo
 	size_t			time_to_sleep;
 	size_t			time_from_meal;
 	size_t			start_time;
-	int				times_eaten;
+	int				num_to_eat;
 	int				num_philos;
 	int				*forks;
 	int				perished;

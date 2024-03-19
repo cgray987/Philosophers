@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 13:24:27 by cgray             #+#    #+#             */
-/*   Updated: 2024/03/18 17:48:43 by cgray            ###   ########.fr       */
+/*   Updated: 2024/03/19 18:01:07 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ int	perished(t_id *id, size_t time_from_meal)
 		return (0);
 	if (time_from_meal >= id->philo->time_to_die)
 	{
-		printf("%zu %d died.\n", time - id->philo->start_time, id->id);
+		printf("%zu %d died\n", time - id->philo->start_time, id->id + 1);
 		id->philo->perished = 1;
 		return (0);
 	}
@@ -32,12 +32,14 @@ int	perished(t_id *id, size_t time_from_meal)
 void	*routine(void *philo_id)
 {
 	int		first;
-	int		time;
+	size_t	time;
 	size_t	last_ate;
 	t_id	*id;
 
 	id = (t_id *)philo_id;
 	first = 1;
+	last_ate = ft_get_time();
+	time = ft_get_time();
 	while (!id->philo->perished)
 	{
 		if (id->id % 2 == 0 && first == 1) // even guys sleep first
@@ -45,18 +47,22 @@ void	*routine(void *philo_id)
 			sleeping(id);
 			first = 0;
 		}
-		if (perished(id, last_ate))
+		if (!perished(id, time - last_ate))
 			return (NULL);
 		eating(id);
 		last_ate = ft_get_time();
 		sleeping(id);
-		if (perished(id, last_ate))
+		time = ft_get_time();
+		if (!perished(id, time - last_ate))
 			return (NULL);
 		thinking(id);
 		time = ft_get_time();
-		if (id->times_eaten == id->philo->times_eaten
+		if (id->times_eaten == id->philo->num_to_eat
 			|| !perished(id, time - last_ate))
+		{
+			// printf("\n%d has eaten %d times.\n", id->id + 1, id->times_eaten);
 			return (NULL);
+		}
 	}
 	return (NULL);
 }
@@ -68,7 +74,7 @@ void	pickup_fork(t_id *id, int fork_position)
 	pthread_mutex_lock(&(id->mutexes[fork_position]));
 	id->philo->forks[fork_position] = 0;
 	time = ft_get_time() - id->philo->start_time;
-	printf("%zu %d has taken a fork.\n", time, id->id + 1);
+	printf("%zu %d has taken a fork\n", time, id->id + 1);
 }
 
 void	putdown_fork(t_id *id, int fork_position)
@@ -78,28 +84,44 @@ void	putdown_fork(t_id *id, int fork_position)
 	pthread_mutex_unlock(&(id->mutexes[fork_position]));
 	id->philo->forks[fork_position] = 1;
 	time = ft_get_time() - id->philo->start_time;
-	printf("%zu %d has set fork down.\n", time, id->id + 1);
+	// printf("%zu %d has put down a fork\n", time, id->id + 1);
 }
 
 void	eating(t_id *id)
 {
 	size_t	time;
 
-	pickup_fork(id, id->id);
 	if (id->id == id->philo->num_philos - 1)
-		pickup_fork(id, 1);
+	{
+		if (id->philo->forks[id->id] && id->philo->forks[1])
+		{
+			pickup_fork(id, id->id);
+			pickup_fork(id, 1);
+		}
+		else
+			return ;
+	}
 	else
-		pickup_fork(id, id->id + 1);
+	{
+		if (id->philo->forks[id->id] && id->philo->forks[(id->id + 1)])
+		{
+			pickup_fork(id, id->id);
+			pickup_fork(id, id->id + 1);
+		}
+		else
+			return ;
+	}
 	time = ft_get_time() - id->philo->start_time;
-	printf("%zu %d is eating.\n", time, id->id + 1);
+	printf("%zu %d is eating\n", time, id->id + 1);
 	ft_msleep(id->philo->time_to_eat);
-	// id->philo->time_from_meal = 0;
 	putdown_fork(id, id->id);
 	if (id->id == id->philo->num_philos - 1)
 		putdown_fork(id, 1);
 	else
 		putdown_fork(id, id->id + 1);
+	// id->philo->time_from_meal = 0;
 	id->times_eaten++;
+	// printf("%d has eaten %d times.\n", id->id + 1, id->times_eaten);
 }
 
 void	thinking(t_id *id)
@@ -110,7 +132,7 @@ void	thinking(t_id *id)
 	time = ft_get_time();
 	time_since = time - id->philo->start_time;
 	printf("%zu %d is thinking\n", time_since, id->id + 1);
-	// ft_msleep(id->philo->time_to_eat - id->philo->time_to_sleep);
+	ft_msleep(2 * id->philo->time_to_eat - id->philo->time_to_sleep);
 }
 
 void	sleeping(t_id *id)
@@ -130,7 +152,7 @@ int	ft_msleep(size_t ms)
 
 	start = ft_get_time();
 	while ((ft_get_time() - start) < ms)
-		usleep(500);
+		usleep(1000);
 	return (0);
 }
 
@@ -200,7 +222,7 @@ void	mem_init(t_philo *philos, pthread_t **philos_threads,
 	np = philos->num_philos;
 	philos->start_time = ft_get_time();
 	*philos_threads = malloc(np * sizeof(pthread_t));
-	*mutexes = malloc(np * sizeof(int));
+	*mutexes = (pthread_mutex_t *)malloc(np * sizeof(pthread_mutex_t));
 	philos->forks = malloc(np * sizeof(int));
 	*philos_id = malloc(np * sizeof(t_id));
 	philos->perished = 0;
@@ -226,12 +248,12 @@ void	get_args(int ac, char **av, t_philo *philos)
 		arg_error();
 	if (ac == 6)
 	{
-		philos->times_eaten = (int)ft_atol(av[5]);
-		if (philos->times_eaten < 0)
+		philos->num_to_eat = (int)ft_atol(av[5]);
+		if (philos->num_to_eat < 0)
 			arg_error();
 	}
 	else
-		philos->times_eaten = -1;
+		philos->num_to_eat = -1;
 }
 
 int	main(int ac, char **av)
@@ -243,9 +265,16 @@ int	main(int ac, char **av)
 	int				i;
 
 
-	mem_init(&philos, &philos_threads, &mutexes, &id);
 	get_args(ac, av, &philos);
+	mem_init(&philos, &philos_threads, &mutexes, &id);
 	philo_init(&philos, &mutexes, &id);
+	if (philos.num_philos == 1)
+	{
+		printf("%d %d has taken a fork\n", 0, 1);
+		ft_msleep(philos.time_to_die);
+		printf("%zu %d died\n", philos.time_to_die, 1);
+		return (0);
+	}
 	i = 0;
 	while (i < philos.num_philos)
 	{
@@ -255,7 +284,10 @@ int	main(int ac, char **av)
 	}
 	i = 0;
 	while (i < philos.num_philos)
-		pthread_join(philos_threads[i++], NULL);
+	{
+		pthread_join(philos_threads[i], NULL);
+		i++;
+	}
 	i = 0;
 	while (i < philos.num_philos)
 		pthread_mutex_destroy(&mutexes[i++]);
