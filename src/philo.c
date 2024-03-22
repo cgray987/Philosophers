@@ -6,11 +6,36 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 13:24:27 by cgray             #+#    #+#             */
-/*   Updated: 2024/03/19 18:01:07 by cgray            ###   ########.fr       */
+/*   Updated: 2024/03/22 17:32:10 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
+
+void	red(void)
+{
+	printf("\033[1;31m");
+}
+
+void	yellow(void)
+{
+	printf("\033[0;33m");
+}
+
+void	green(void)
+{
+	printf("\033[0;32m");
+}
+
+void	blue(void)
+{
+	printf("\033[0;34m");
+}
+
+void	reset(void)
+{
+	printf("\033[0m");
+}
 
 /* returns 1 while alive, 0 if dead */
 int	perished(t_id *id, size_t time_from_meal)
@@ -20,9 +45,11 @@ int	perished(t_id *id, size_t time_from_meal)
 	time = ft_get_time();
 	if (id->philo->perished == 1)
 		return (0);
-	if (time_from_meal >= id->philo->time_to_die)
+	if (time_from_meal >= (size_t)id->philo->time_to_die)
 	{
+		// red();
 		printf("%zu %d died\n", time - id->philo->start_time, id->id + 1);
+		// reset();
 		id->philo->perished = 1;
 		return (0);
 	}
@@ -40,7 +67,7 @@ void	*routine(void *philo_id)
 	first = 1;
 	last_ate = ft_get_time();
 	time = ft_get_time();
-	while (!id->philo->perished)
+	while (id->philo->perished == 0)
 	{
 		if (id->id % 2 == 0 && first == 1) // even guys sleep first
 		{
@@ -112,7 +139,9 @@ void	eating(t_id *id)
 			return ;
 	}
 	time = ft_get_time() - id->philo->start_time;
+	// green();
 	printf("%zu %d is eating\n", time, id->id + 1);
+	// reset();
 	ft_msleep(id->philo->time_to_eat);
 	putdown_fork(id, id->id);
 	if (id->id == id->philo->num_philos - 1)
@@ -131,7 +160,9 @@ void	thinking(t_id *id)
 
 	time = ft_get_time();
 	time_since = time - id->philo->start_time;
+	// blue();
 	printf("%zu %d is thinking\n", time_since, id->id + 1);
+	// reset();
 	ft_msleep(2 * id->philo->time_to_eat - id->philo->time_to_sleep);
 }
 
@@ -142,7 +173,9 @@ void	sleeping(t_id *id)
 
 	time = ft_get_time();
 	time_since = time - id->philo->start_time;
+	// yellow();
 	printf("%zu %d is sleeping\n", time_since, id->id + 1);
+	// reset();
 	ft_msleep(id->philo->time_to_sleep);
 }
 
@@ -268,11 +301,26 @@ int	main(int ac, char **av)
 	get_args(ac, av, &philos);
 	mem_init(&philos, &philos_threads, &mutexes, &id);
 	philo_init(&philos, &mutexes, &id);
+	printf("\n\t\033[1;37m 🗿~~PHILOSOPHERS~~🗿\n\n\033[0m");
+	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+	printf("|\tNumber of philos: %d\t\t|\n", philos.num_philos);
+	// red();
+	printf("|\tTime to die: %zu\t\t|\n", philos.time_to_die);
+	// green();
+	printf("|\tTime to eat: %zu\t\t|\n", philos.time_to_eat);
+	// yellow();
+	printf("|\tTime to sleep: %zu\t\t|\n", philos.time_to_sleep);
+	// reset();
+	if (philos.num_to_eat != -1)
+		printf("|\tNumber of times to eat: %d\t|\n", philos.num_to_eat);
+	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
 	if (philos.num_philos == 1)
 	{
 		printf("%d %d has taken a fork\n", 0, 1);
 		ft_msleep(philos.time_to_die);
+		// red();
 		printf("%zu %d died\n", philos.time_to_die, 1);
+		// reset();
 		return (0);
 	}
 	i = 0;

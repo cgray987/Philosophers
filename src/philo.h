@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/03/19 15:48:21 by cgray            ###   ########.fr       */
+/*   Updated: 2024/03/20 15:56:29 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,9 +53,9 @@ destroy mutexes/free memory
 
 typedef struct s_philo
 {
-	size_t			time_to_die;
-	size_t			time_to_eat;
-	size_t			time_to_sleep;
+	long			time_to_die;
+	long			time_to_eat;
+	long			time_to_sleep;
 	size_t			time_from_meal;
 	size_t			start_time;
 	int				num_to_eat;
