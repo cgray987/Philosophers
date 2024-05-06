@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/03/20 15:56:29 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/06 16:55:50 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,12 @@ destroy mutexes/free memory
 # include <sys/time.h> //gettimeofday
 # include <sys/wait.h>
 # include <pthread.h> //pthread, mutex
-
+# define RED "\e[0;31m"
+# define GRN "\e[0;32m"
+# define YEL "\e[0;33m"
+# define BLU "\e[0;34m"
+#define BRED "\e[1;31m"
+# define RESET "\e[0m"
 typedef struct s_philo
 {
 	long			time_to_die;
@@ -70,9 +75,11 @@ typedef struct s_id
 	int				id;
 	int				times_eaten;
 	pthread_mutex_t	*mutexes;
+	pthread_mutex_t	*write_mutex;
 }			t_id;
 
-int		perished(t_id *id, size_t time_from_meal);
+void	logging(char *str, t_id *id, char flag);
+int		perished(t_id *id, size_t time_from_meal, size_t routine_time);
 void	*routine(void *id);
 void	pickup_fork(t_id *id, int fork_position);
 void	putdown_fork(t_id *id, int fork_position);
@@ -82,11 +89,14 @@ void	sleeping(t_id *id);
 int		ft_msleep(size_t ms);
 size_t	ft_get_time(void);
 long	ft_atol(const char *string);
+void	title(t_philo philos);
 void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
-			t_id **philos_id);
+			pthread_mutex_t *write_mutex, t_id **philos_id);
 void	mem_init(t_philo *philos, pthread_t **philos_threads,
 			pthread_mutex_t **mutexes, t_id **philos_id);
 void	arg_error(void);
 void	get_args(int ac, char **av, t_philo *philos);
+void	free_philos(t_philo *philos, pthread_t **philos_threads,
+			pthread_mutex_t **mutexes, t_id **id);
 
 #endif

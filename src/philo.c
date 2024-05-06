@@ -6,54 +6,57 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 13:24:27 by cgray             #+#    #+#             */
-/*   Updated: 2024/03/22 17:32:10 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/06 16:54:27 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-void	red(void)
+void	logging(char *str, t_id *id, char flag)
 {
-	printf("\033[1;31m");
+	size_t	time;
+
+	pthread_mutex_lock((id->write_mutex));
+	time = ft_get_time() - id->philo->start_time;
+	if (flag == 'd')
+		printf(RED"%zu\t%d\t%s\n"RESET, time, id->id + 1, str);
+	else if (flag == 'e')
+		printf(GRN"%zu\t%d\t%s\n"RESET, time, id->id + 1, str);
+	else if (flag == 's')
+		printf(YEL"%zu\t%d\t%s\n"RESET, time, id->id + 1, str);
+	else if (flag == 't')
+		printf(BLU"%zu\t%d\t%s\n"RESET, time, id->id + 1, str);
+	else
+		printf("%zu\t%d\t%s\n", time, id->id + 1, str);
+	pthread_mutex_unlock((id->write_mutex));
 }
 
-void	yellow(void)
-{
-	printf("\033[0;33m");
-}
-
-void	green(void)
-{
-	printf("\033[0;32m");
-}
-
-void	blue(void)
-{
-	printf("\033[0;34m");
-}
-
-void	reset(void)
-{
-	printf("\033[0m");
-}
-
-/* returns 1 while alive, 0 if dead */
-int	perished(t_id *id, size_t time_from_meal)
+/* returns 0 while alive, 1 if dead */
+int	perished(t_id *id, size_t time_from_meal, size_t routine_time)
 {
 	size_t	time;
 
 	time = ft_get_time();
 	if (id->philo->perished == 1)
-		return (0);
+		return (1);
 	if (time_from_meal >= (size_t)id->philo->time_to_die)
 	{
 		// red();
-		printf("%zu %d died\n", time - id->philo->start_time, id->id + 1);
-		// reset();
 		id->philo->perished = 1;
-		return (0);
+		logging("died", id, 'd');
+		// reset();
+		return (1);
 	}
-	return (1);
+		if (time_from_meal + routine_time >= (size_t)id->philo->time_to_die)
+	{
+		// red();
+		ft_msleep(id->philo->time_to_die - (ft_get_time() - id->philo->start_time));
+		id->philo->perished = 1;
+		logging("died", id, 'd');
+		// reset();
+		return (1);
+	}
+	return (0);
 }
 
 void	*routine(void *philo_id)
@@ -62,30 +65,37 @@ void	*routine(void *philo_id)
 	size_t	time;
 	size_t	last_ate;
 	t_id	*id;
+	size_t	think_time;
 
 	id = (t_id *)philo_id;
 	first = 1;
 	last_ate = ft_get_time();
 	time = ft_get_time();
-	while (id->philo->perished == 0)
+	think_time = 2 * id->philo->time_to_eat - id->philo->time_to_sleep;
+	while (!id->philo->perished)
 	{
 		if (id->id % 2 == 0 && first == 1) // even guys sleep first
 		{
 			sleeping(id);
 			first = 0;
 		}
-		if (!perished(id, time - last_ate))
+		if (perished(id, ft_get_time() - last_ate, 0))
 			return (NULL);
 		eating(id);
 		last_ate = ft_get_time();
-		sleeping(id);
-		time = ft_get_time();
-		if (!perished(id, time - last_ate))
+		if (perished(id, ft_get_time() - last_ate, id->philo->time_to_sleep))
 			return (NULL);
+		sleeping(id);
+		if (perished(id, ft_get_time() - last_ate, think_time))
+			return (NULL);
+		// if ((id->philo->time_to_die - (ft_get_time() - last_ate + think_time)) < 0)
+		// {
+		// 	ft_msleep(id->philo->time_to_die - (ft_get_time() - id->philo->start_time));
+		// 	return (NULL); //ft_msleep(id->philo->time_to_die - ft_get_time() - id->philo->start_time)
+		// }
 		thinking(id);
-		time = ft_get_time();
 		if (id->times_eaten == id->philo->num_to_eat
-			|| !perished(id, time - last_ate))
+			|| perished(id, ft_get_time() - last_ate, 0))
 		{
 			// printf("\n%d has eaten %d times.\n", id->id + 1, id->times_eaten);
 			return (NULL);
@@ -94,226 +104,20 @@ void	*routine(void *philo_id)
 	return (NULL);
 }
 
-void	pickup_fork(t_id *id, int fork_position)
-{
-	size_t	time;
-
-	pthread_mutex_lock(&(id->mutexes[fork_position]));
-	id->philo->forks[fork_position] = 0;
-	time = ft_get_time() - id->philo->start_time;
-	printf("%zu %d has taken a fork\n", time, id->id + 1);
-}
-
-void	putdown_fork(t_id *id, int fork_position)
-{
-	size_t	time;
-
-	pthread_mutex_unlock(&(id->mutexes[fork_position]));
-	id->philo->forks[fork_position] = 1;
-	time = ft_get_time() - id->philo->start_time;
-	// printf("%zu %d has put down a fork\n", time, id->id + 1);
-}
-
-void	eating(t_id *id)
-{
-	size_t	time;
-
-	if (id->id == id->philo->num_philos - 1)
-	{
-		if (id->philo->forks[id->id] && id->philo->forks[1])
-		{
-			pickup_fork(id, id->id);
-			pickup_fork(id, 1);
-		}
-		else
-			return ;
-	}
-	else
-	{
-		if (id->philo->forks[id->id] && id->philo->forks[(id->id + 1)])
-		{
-			pickup_fork(id, id->id);
-			pickup_fork(id, id->id + 1);
-		}
-		else
-			return ;
-	}
-	time = ft_get_time() - id->philo->start_time;
-	// green();
-	printf("%zu %d is eating\n", time, id->id + 1);
-	// reset();
-	ft_msleep(id->philo->time_to_eat);
-	putdown_fork(id, id->id);
-	if (id->id == id->philo->num_philos - 1)
-		putdown_fork(id, 1);
-	else
-		putdown_fork(id, id->id + 1);
-	// id->philo->time_from_meal = 0;
-	id->times_eaten++;
-	// printf("%d has eaten %d times.\n", id->id + 1, id->times_eaten);
-}
-
-void	thinking(t_id *id)
-{
-	size_t	time;
-	size_t	time_since;
-
-	time = ft_get_time();
-	time_since = time - id->philo->start_time;
-	// blue();
-	printf("%zu %d is thinking\n", time_since, id->id + 1);
-	// reset();
-	ft_msleep(2 * id->philo->time_to_eat - id->philo->time_to_sleep);
-}
-
-void	sleeping(t_id *id)
-{
-	size_t	time;
-	size_t	time_since;
-
-	time = ft_get_time();
-	time_since = time - id->philo->start_time;
-	// yellow();
-	printf("%zu %d is sleeping\n", time_since, id->id + 1);
-	// reset();
-	ft_msleep(id->philo->time_to_sleep);
-}
-
-int	ft_msleep(size_t ms)
-{
-	size_t	start;
-
-	start = ft_get_time();
-	while ((ft_get_time() - start) < ms)
-		usleep(1000);
-	return (0);
-}
-
-/* returns current time in ms */
-size_t	ft_get_time(void)
-{
-	struct timeval	time;
-
-	if (gettimeofday(&time, NULL) == -1)
-	{
-		printf("gettimeofday error.\n");
-		exit(EXIT_FAILURE);
-	}
-	return (time.tv_sec * 1000 + time.tv_usec / 1000);
-}
-
-/* converts given string to a long
-	digits in string can be proceeded by spaces/linefeeds,
-	'-' or '+' changes sign of number.
-	stops after the first non-digit after string digits */
-long	ft_atol(const char *string)
-{
-	long	num;
-	int		neg;
-
-	num = 0;
-	neg = 1;
-	while (*string == ' ' || (*string >= 9 && *string <= 13))
-		string++;
-	if (*string == '-' || *string == '+')
-	{
-		if (*string == '-')
-			neg = -1;
-		string++;
-	}
-	while (*string >= '0' && *string <= '9')
-	{
-		num = num * 10 + *string - '0';
-		string++;
-	}
-	return (num * neg);
-}
-
-void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
-			t_id **philos_id)
-{
-	int	i;
-
-	i = 0;
-	while (i < philos->num_philos)
-	{
-		philos->forks[i] = 1;
-		(*philos_id)[i].philo = philos;
-		(*philos_id)[i].id = i;
-		(*philos_id)[i].times_eaten = 0;
-		(*philos_id)[i].mutexes = *mutexes;
-		i++;
-	}
-}
-
-/* Initialize and malloc t_philo and number of threads/mutexes */
-void	mem_init(t_philo *philos, pthread_t **philos_threads,
-			pthread_mutex_t **mutexes, t_id **philos_id)
-{
-	int	np;
-
-	np = philos->num_philos;
-	philos->start_time = ft_get_time();
-	*philos_threads = malloc(np * sizeof(pthread_t));
-	*mutexes = (pthread_mutex_t *)malloc(np * sizeof(pthread_mutex_t));
-	philos->forks = malloc(np * sizeof(int));
-	*philos_id = malloc(np * sizeof(t_id));
-	philos->perished = 0;
-}
-
-void	arg_error(void)
-{
-	printf("Bad arguments.\n");
-	exit(EXIT_FAILURE);
-}
-
-/* reads arguments and places them into struct, checking if valid input */
-void	get_args(int ac, char **av, t_philo *philos)
-{
-	if (ac != 5 && ac != 6)
-		arg_error();
-	philos->num_philos = (int)ft_atol(av[1]);
-	philos->time_to_die = ft_atol(av[2]);
-	philos->time_to_eat = ft_atol(av[3]);
-	philos->time_to_sleep = ft_atol(av[4]);
-	if (philos->num_philos < 1 || philos->time_to_die < 0
-		|| philos->time_to_eat < 0 || philos->time_to_sleep < 0)
-		arg_error();
-	if (ac == 6)
-	{
-		philos->num_to_eat = (int)ft_atol(av[5]);
-		if (philos->num_to_eat < 0)
-			arg_error();
-	}
-	else
-		philos->num_to_eat = -1;
-}
-
 int	main(int ac, char **av)
 {
 	t_philo			philos;
 	t_id			*id;
 	pthread_t		*philos_threads;
 	pthread_mutex_t	*mutexes;
+	pthread_mutex_t	write_mutex;
 	int				i;
 
 
 	get_args(ac, av, &philos);
 	mem_init(&philos, &philos_threads, &mutexes, &id);
-	philo_init(&philos, &mutexes, &id);
-	printf("\n\t\033[1;37m 🗿~~PHILOSOPHERS~~🗿\n\n\033[0m");
-	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-	printf("|\tNumber of philos: %d\t\t|\n", philos.num_philos);
-	// red();
-	printf("|\tTime to die: %zu\t\t|\n", philos.time_to_die);
-	// green();
-	printf("|\tTime to eat: %zu\t\t|\n", philos.time_to_eat);
-	// yellow();
-	printf("|\tTime to sleep: %zu\t\t|\n", philos.time_to_sleep);
-	// reset();
-	if (philos.num_to_eat != -1)
-		printf("|\tNumber of times to eat: %d\t|\n", philos.num_to_eat);
-	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+	philo_init(&philos, &mutexes, &write_mutex, &id);
+	title(philos);
 	if (philos.num_philos == 1)
 	{
 		printf("%d %d has taken a fork\n", 0, 1);
@@ -321,6 +125,7 @@ int	main(int ac, char **av)
 		// red();
 		printf("%zu %d died\n", philos.time_to_die, 1);
 		// reset();
+		free_philos(&philos, &philos_threads, &mutexes, &id);
 		return (0);
 	}
 	i = 0;
@@ -328,6 +133,7 @@ int	main(int ac, char **av)
 	{
 		pthread_mutex_init(&mutexes[i], NULL);
 		pthread_create(philos_threads + i, NULL, &routine, &id[i]);
+		usleep(1);
 		i++;
 	}
 	i = 0;
@@ -339,4 +145,6 @@ int	main(int ac, char **av)
 	i = 0;
 	while (i < philos.num_philos)
 		pthread_mutex_destroy(&mutexes[i++]);
+	free_philos(&philos, &philos_threads, &mutexes, &id);
+
 }

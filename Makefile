@@ -1,9 +1,11 @@
 NAME		:= philo
 CFLAGS		:= -Wall -Wextra -Werror -g
+# CFLAGS		:= -fsanitize=address -static-libasan
 CC 			:= cc
+# CC 			:= gcc
 
 SRC_PATH	:= src/
-SRC			:= philo.c
+SRC			:= philo.c arguments.c routines.c utils.c
 SRCS		:= $(addprefix $(SRC_PATH), $(SRC))
 
 OBJ_PATH:= obj/
@@ -29,7 +31,7 @@ $(OBJ_PATH):
 
 $(NAME): $(OBJS)
 	@echo "$(BOLD)$(BCYAN)[ Compiling $(NAME)... ]$(NC)"
-	@$(CC) $(OBJS) -o $(NAME)
+	@$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 	@echo "$(BOLD)$(GREEN)[ $(NAME) ready! ]$(NC)"
 
 clean:
