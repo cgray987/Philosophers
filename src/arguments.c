@@ -6,12 +6,11 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:42:26 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/03 15:14:41 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/08 17:06:19 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
 
 void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
 			pthread_mutex_t *write_mutex, t_id **philos_id)
@@ -22,6 +21,7 @@ void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
 	while (i < philos->num_philos)
 	{
 		philos->forks[i] = 1;
+		// printf("forks[%d] = %d\n", i, philos->forks[i]);
 		(*philos_id)[i].philo = philos;
 		(*philos_id)[i].id = i;
 		(*philos_id)[i].times_eaten = 0;
@@ -72,4 +72,31 @@ void	get_args(int ac, char **av, t_philo *philos)
 	}
 	else
 		philos->num_to_eat = -1;
+}
+
+/* converts given string to a long
+	digits in string can be proceeded by spaces/linefeeds,
+	'-' or '+' changes sign of number.
+	stops after the first non-digit after string digits */
+long	ft_atol(const char *string)
+{
+	long	num;
+	int		neg;
+
+	num = 0;
+	neg = 1;
+	while (*string == ' ' || (*string >= 9 && *string <= 13))
+		string++;
+	if (*string == '-' || *string == '+')
+	{
+		if (*string == '-')
+			neg = -1;
+		string++;
+	}
+	while (*string >= '0' && *string <= '9')
+	{
+		num = num * 10 + *string - '0';
+		string++;
+	}
+	return (num * neg);
 }

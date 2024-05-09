@@ -6,106 +6,113 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:44:12 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/06 16:50:58 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/09 17:50:56 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/* locks and picks up fork */
 void	pickup_fork(t_id *id, int fork_position)
 {
-	// size_t	time;
-
 	pthread_mutex_lock(&(id->mutexes[fork_position]));
 	id->philo->forks[fork_position] = 0;
-	// time = ft_get_time() - id->philo->start_time;
 	logging("has taken a fork", id, 'f');
 }
 
+/* unlocks and puts fork down */
 void	putdown_fork(t_id *id, int fork_position)
 {
-	// size_t	time;
-
 	pthread_mutex_unlock(&(id->mutexes[fork_position]));
 	id->philo->forks[fork_position] = 1;
-	// time = ft_get_time() - id->philo->start_time;
-	// printf("%zu %d has put down a fork\n", time, id->id + 1);
+	// logging("has put down a fork", id, 'f');
 }
 
-void	eating(t_id *id)
+/* if available, grabs left and right forks.
+-- if last philo, left fork is fork 1
+-- else left fork is id + 1
+- call log to eat
+- put down forks
+- increment times eaten */
+int	eating(t_id *id, size_t *last_ate)
 {
-	// size_t	time;
+	int	left;
+	int	right;
 
+	right = id->id;
 	if (id->id == id->philo->num_philos - 1)
-	{
-		if (id->philo->forks[id->id] && id->philo->forks[1])
-		{
-			pickup_fork(id, id->id);
-			pickup_fork(id, 1);
-		}
-		else
-			return ;
-	}
+		left = 0;
 	else
+		left = id->id + 1;
+	// printf("test: %d l%d r%d\n", id->id + 1, id->philo->forks[left], id->philo->forks[right]);
+	// if (id->philo->forks[left] && id->philo->forks[right])
 	{
-		if (id->philo->forks[id->id] && id->philo->forks[(id->id + 1)])
-		{
-			pickup_fork(id, id->id);
-			pickup_fork(id, id->id + 1);
-		}
-		else
-			return ;
+		pickup_fork(id, left);
+		pickup_fork(id, right);
 	}
-	// time = ft_get_time() - id->philo->start_time;
-	// green();
+	// else
+	// {
+		// logging("no forks available\n", id, 'x');
+		// printf("\t\t%d l%d r%d\n", id->id + 1, id->philo->forks[left], id->philo->forks[right]);
+		// thinking(id);
+		// return (1);
+	// }
 	logging("is eating", id, 'e');
-	// reset();
+	// id->philo->time_from_meal = ft_get_time();
+	*last_ate = ft_get_time();
+	if (id->philo->time_to_eat > id->philo->time_to_die)
+		return (0);
 	ft_msleep(id->philo->time_to_eat);
-	putdown_fork(id, id->id);
-	if (id->id == id->philo->num_philos - 1)
-		putdown_fork(id, 1);
-	else
-		putdown_fork(id, id->id + 1);
-	// id->philo->time_from_meal = 0;
+	putdown_fork(id, left);
+	putdown_fork(id, right);
 	id->times_eaten++;
-	// printf("%d has eaten %d times.\n", id->id + 1, id->times_eaten);
+	return (0);
 }
 
-void	thinking(t_id *id)
+/* think time is twice eat time - sleep time
+I think the else condition could be removed. */
+void	thinking(t_id *id, size_t last_ate)
 {
 	size_t	time;
-
-	time = ft_get_time() - id->philo->start_time;
-	if ((2 * id->philo->time_to_eat - id->philo->time_to_sleep) > 0)
-	{
-		// blue();
-		logging("is thinking", id, 't');
-		// reset();
-		// ft_msleep(100);
-		if (time - id->philo->time_from_meal > 0)
-			ft_msleep(2 * id->philo->time_to_eat - id->philo->time_to_sleep);
-		else
-		{
-			id->philo->perished = 1;
-			logging("died", id, 'd');
-		}
-	}
-	else
-	{
-		id->philo->perished = 1;
-		logging("died", id, 'd');
-	}
-}
-
-void	sleeping(t_id *id)
-{
-	size_t	time;
-	size_t	time_since;
+	size_t	think_time;
 
 	time = ft_get_time();
-	time_since = time - id->philo->start_time;
-	// yellow();
+	think_time = 2 * (id->philo->time_to_eat - id->philo->time_to_sleep);
+	if (think_time >= 0)
+	{
+		logging("is thinking", id, 't');
+		if (perished(id, time - last_ate, think_time))
+			return ;
+		// printf("%d time from meal: %zu\n",id->id + 1, time - id->philo->time_from_meal);
+		ft_msleep(think_time);
+		// ft_msleep(id->philo->time_to_eat);
+		// else
+		// {
+		// 	printf("think death\n");
+		// 	printf("%zu\n", time - id->philo->time_from_meal);
+		// 	id->philo->perished = 1;
+		// 	logging("died", id, 'd');
+		// }
+	}
+}
+
+void	sleeping(t_id *id, size_t last_ate)
+{
+	size_t	time;
+
+	time = ft_get_time();
 	logging("is sleeping", id, 's');
-	// reset();
+	if (perished(id, time - last_ate, id->philo->time_to_sleep))
+	{
+		return ;
+	}
+	// printf("%d time from meal: %zu\n",id->id + 1, time - id->philo->time_from_meal);
 	ft_msleep(id->philo->time_to_sleep);
+	// else
+	// {
+	// 	printf("sleep death\n");
+	// 	printf("%zu\n", time - id->philo->time_from_meal);
+	// 	id->philo->perished = 1;
+	// 	logging("died", id, 'd');
+	// }
 }

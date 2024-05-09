@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:43:32 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/06 16:56:13 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/08 14:40:25 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,59 +44,46 @@ size_t	ft_get_time(void)
 	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
-/* converts given string to a long
-	digits in string can be proceeded by spaces/linefeeds,
-	'-' or '+' changes sign of number.
-	stops after the first non-digit after string digits */
-long	ft_atol(const char *string)
-{
-	long	num;
-	int		neg;
-
-	num = 0;
-	neg = 1;
-	while (*string == ' ' || (*string >= 9 && *string <= 13))
-		string++;
-	if (*string == '-' || *string == '+')
-	{
-		if (*string == '-')
-			neg = -1;
-		string++;
-	}
-	while (*string >= '0' && *string <= '9')
-	{
-		num = num * 10 + *string - '0';
-		string++;
-	}
-	return (num * neg);
-}
-
 void	title(t_philo philos)
 {
-	char	*title[7];
+	char	*title2[9];
 	int		i;
 
+	title2[0] = " ██▓███  ██░ ██ ██▓██▓    ▒█████   ██████";
+	title2[1] = "▓██░  ██▓██░ ██▓██▓██▒   ▒██▒  ██▒██    ▒";
+	title2[2] = "▓██░ ██▓▒██▀▀██▒██▒██░   ▒██░  ██░ ▓██▄";
+	title2[3] = "▒██▄█▓▒ ░▓█ ░██░██▒██░   ▒██   ██░ ▒   ██▒";
+	title2[4] = "▒██▒ ░  ░▓█▒░██░██░██████░ ████▓▒▒██████▒▒";
+	title2[5] = "▒▓▒░ ░  ░▒ ░░▒░░▓ ░ ▒░▓  ░ ▒░▒░▒░▒ ▒▓▒ ▒ ░";
+	title2[6] = "░▒ ░     ▒ ░▒░ ░▒ ░ ░ ▒  ░ ░ ▒ ▒░░ ░▒  ░ ░";
+	title2[7] = "░░       ░  ░░ ░▒ ░ ░ ░  ░ ░ ░ ▒ ░  ░  ░";
+	title2[8] = "         ░  ░  ░░     ░  ░   ░ ░       ░";
+	i = 0;
+	while (i < 9)
+		printf(RED"%s\n", title2[i++]);
+	subtitle(philos);
+}
+
+void	subtitle(t_philo philos)
+{
+	printf(RESET"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+	printf("|\tNumber of philos: %d\t\t|\n", philos.num_philos);
+	printf("|\tTime to die: "RED"%zu ms"RESET"\t\t|\n", philos.time_to_die);
+	printf("|\tTime to eat: "GRN"%zu ms"RESET"\t\t|\n", philos.time_to_eat);
+	printf("|\tTime to sleep: "YEL"%zu ms"RESET"\t\t|\n"RESET,
+		philos.time_to_sleep);
+	if (philos.num_to_eat != -1)
+		printf("|\tNumber of times to eat: "GRN"%d"RESET"\t|\n",
+			philos.num_to_eat);
+	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+	printf(BWHT"time\tphilo\taction\n"RESET);
+}
+
+/*
 	title[0] = " _______  __   __  ___  ___      _______  _______";
 	title[1] = "|       ||  | |  ||   ||   |    |       ||       |";
 	title[2] = "|    _  ||  |_|  ||   ||   |    |   _   ||  _____|";
 	title[3] = "|   |_| ||       ||   ||   |    |  | |  || |_____";
 	title[4] = "|    ___||       ||   ||   |___ |  |_|  ||_____  |";
 	title[5] = "|   |    |   _   ||   ||       ||       | _____| |";
-	title[6] = "|___|    |__| |__||___||_______||_______||_______|";
-	i = 0;
-	while (i < 7)
-		printf(RED"%s\n", title[i++]);
-	printf(RESET"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-	printf("|\tNumber of philos: %d\t\t|\n", philos.num_philos);
-	// red();
-	printf("|\tTime to die: %zu ms\t\t|\n", philos.time_to_die);
-	// green();
-	printf("|\tTime to eat: %zu ms\t\t|\n", philos.time_to_eat);
-	// yellow();
-	printf("|\tTime to sleep: %zu ms\t\t|\n", philos.time_to_sleep);
-	// reset();
-	if (philos.num_to_eat != -1)
-		printf("|\tNumber of times to eat: %d\t|\n", philos.num_to_eat);
-	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
-	printf("time\tphilo\taction\n");
-}
+	title[6] = "|___|    |__| |__||___||_______||_______||_______|"; */

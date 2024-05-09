@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/06 16:55:50 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/09 17:51:17 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,13 +54,16 @@ destroy mutexes/free memory
 # define GRN "\e[0;32m"
 # define YEL "\e[0;33m"
 # define BLU "\e[0;34m"
-#define BRED "\e[1;31m"
+# define BRED "\e[1;31m"
+# define BWHT "\e[1;37m"
 # define RESET "\e[0m"
+
+/* Struct for individual philosopher info */
 typedef struct s_philo
 {
-	long			time_to_die;
-	long			time_to_eat;
-	long			time_to_sleep;
+	size_t			time_to_die;
+	size_t			time_to_eat;
+	size_t			time_to_sleep;
 	size_t			time_from_meal;
 	size_t			start_time;
 	int				num_to_eat;
@@ -69,6 +72,7 @@ typedef struct s_philo
 	int				perished;
 }			t_philo;
 
+/* Struct containing all philos and mutexes */
 typedef struct s_id
 {
 	t_philo			*philo;
@@ -78,25 +82,37 @@ typedef struct s_id
 	pthread_mutex_t	*write_mutex;
 }			t_id;
 
-void	logging(char *str, t_id *id, char flag);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~PHILO.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 int		perished(t_id *id, size_t time_from_meal, size_t routine_time);
 void	*routine(void *id);
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINES.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	pickup_fork(t_id *id, int fork_position);
 void	putdown_fork(t_id *id, int fork_position);
-void	eating(t_id *id);
-void	thinking(t_id *id);
-void	sleeping(t_id *id);
-int		ft_msleep(size_t ms);
-size_t	ft_get_time(void);
-long	ft_atol(const char *string);
-void	title(t_philo philos);
+int	eating(t_id *id, size_t *last_ate);
+void	thinking(t_id *id, size_t last_ate);
+void	sleeping(t_id *id, size_t last_ate);
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINE_UTILS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+void	logging(char *str, t_id *id, char flag);
+int		first_sleep(t_id *id, int *first, size_t last_ate);
+int		eaten_enough_or_die(t_id *id, size_t last_ate);
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~ARGUMENTS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
 			pthread_mutex_t *write_mutex, t_id **philos_id);
 void	mem_init(t_philo *philos, pthread_t **philos_threads,
 			pthread_mutex_t **mutexes, t_id **philos_id);
 void	arg_error(void);
 void	get_args(int ac, char **av, t_philo *philos);
+long	ft_atol(const char *string);
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~UTILS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	free_philos(t_philo *philos, pthread_t **philos_threads,
 			pthread_mutex_t **mutexes, t_id **id);
+int		ft_msleep(size_t ms);
+size_t	ft_get_time(void);
+void	title(t_philo philos);
+void	subtitle(t_philo philos);
 
 #endif
