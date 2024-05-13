@@ -6,14 +6,14 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:42:26 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/08 17:06:19 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/13 15:48:36 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
 void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
-			pthread_mutex_t *write_mutex, t_id **philos_id)
+			t_id **philos_id)
 {
 	int	i;
 
@@ -26,7 +26,7 @@ void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
 		(*philos_id)[i].id = i;
 		(*philos_id)[i].times_eaten = 0;
 		(*philos_id)[i].mutexes = *mutexes;
-		(*philos_id)[i].write_mutex = write_mutex;
+		// (*philos_id)[i].write_mutex = write_mutex;
 		i++;
 	}
 }

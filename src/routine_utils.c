@@ -6,11 +6,28 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 15:01:58 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/09 17:46:42 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/13 15:33:35 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
+
+void	drop_forks(t_id *id)
+{
+	int	left;
+	int	right;
+
+	right = id->id;
+	if (id->id == id->philo->num_philos - 1)
+		left = 0;
+	else
+		left = id->id + 1;
+	if (!id->philo->forks[left] && !id->philo->forks[right])
+	{
+		putdown_fork(id, left);
+		putdown_fork(id, right);
+	}
+}
 
 void	logging(char *str, t_id *id, char flag)
 {

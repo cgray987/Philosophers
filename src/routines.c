@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:44:12 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/09 17:50:56 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/13 15:59:35 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,11 +74,11 @@ I think the else condition could be removed. */
 void	thinking(t_id *id, size_t last_ate)
 {
 	size_t	time;
-	size_t	think_time;
+	long	think_time;
 
 	time = ft_get_time();
 	think_time = 2 * (id->philo->time_to_eat - id->philo->time_to_sleep);
-	if (think_time >= 0)
+	if (think_time > 0)
 	{
 		logging("is thinking", id, 't');
 		if (perished(id, time - last_ate, think_time))

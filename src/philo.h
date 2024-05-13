@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/09 17:51:17 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/13 15:48:21 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,11 +61,11 @@ destroy mutexes/free memory
 /* Struct for individual philosopher info */
 typedef struct s_philo
 {
-	size_t			time_to_die;
-	size_t			time_to_eat;
-	size_t			time_to_sleep;
-	size_t			time_from_meal;
-	size_t			start_time;
+	long			time_to_die;
+	long			time_to_eat;
+	long			time_to_sleep;
+	long			time_from_meal;
+	long			start_time;
 	int				num_to_eat;
 	int				num_philos;
 	int				*forks;
@@ -85,11 +85,14 @@ typedef struct s_id
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~PHILO.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 int		perished(t_id *id, size_t time_from_meal, size_t routine_time);
 void	*routine(void *id);
+void	run_threads(t_id *id, pthread_t *philos_threads,
+			pthread_mutex_t *mutexes);
+int		one_philo(t_id *id);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINES.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	pickup_fork(t_id *id, int fork_position);
 void	putdown_fork(t_id *id, int fork_position);
-int	eating(t_id *id, size_t *last_ate);
+int		eating(t_id *id, size_t *last_ate);
 void	thinking(t_id *id, size_t last_ate);
 void	sleeping(t_id *id, size_t last_ate);
 
@@ -97,10 +100,11 @@ void	sleeping(t_id *id, size_t last_ate);
 void	logging(char *str, t_id *id, char flag);
 int		first_sleep(t_id *id, int *first, size_t last_ate);
 int		eaten_enough_or_die(t_id *id, size_t last_ate);
+void	drop_forks(t_id *id);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ARGUMENTS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
-			pthread_mutex_t *write_mutex, t_id **philos_id);
+			t_id **philos_id);
 void	mem_init(t_philo *philos, pthread_t **philos_threads,
 			pthread_mutex_t **mutexes, t_id **philos_id);
 void	arg_error(void);

@@ -1,14 +1,14 @@
 NAME		:= philo
-CFLAGS		:= -Wall -Wextra -Werror -g
-# CFLAGS		:= -fsanitize=address -static-libasan
-CC 			:= cc
+CFLAGS		= -Wall -Wextra -Werror -g -pthread
+# CFLAGS		:= -g -fsanitize=address -static-libasan
+CC 			= cc
 # CC 			:= gcc
 
 SRC_PATH	:= src/
-SRC			:= philo.c arguments.c routines.c utils.c
+SRC			:= philo.c arguments.c routines.c utils.c routine_utils.c
 SRCS		:= $(addprefix $(SRC_PATH), $(SRC))
 
-OBJ_PATH:= obj/
+OBJ_PATH	:= obj/
 OBJ			:= ${SRC:.c=.o}
 OBJS		:= $(addprefix $(OBJ_PATH), $(OBJ))
 
@@ -41,6 +41,11 @@ clean:
 fclean: clean
 	@rm -rf $(NAME) $(NAME_B)
 	@echo "$(BOLD)$(RED)[ Program deleted ]$(NC)"
+
+san: CFLAGS += -fsanitize=thread -O1
+san: CC = gcc
+san: fclean $(NAME)
+	@echo "$(BOLD)$(GREEN)[ USING THREAD SANITIZER ]$(NC)"
 
 re: clean all
 
