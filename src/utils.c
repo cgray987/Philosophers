@@ -6,12 +6,13 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:43:32 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/13 15:33:29 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/15 14:16:47 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/* frees memory after program finished */
 void	free_philos(t_philo *philos, pthread_t **philos_threads,
 			pthread_mutex_t **mutexes, t_id **id)
 {
@@ -21,13 +22,14 @@ void	free_philos(t_philo *philos, pthread_t **philos_threads,
 	free(philos->forks);
 }
 
+/* usleep in ms */
 int	ft_msleep(size_t ms)
 {
 	size_t	start;
 
 	start = ft_get_time();
 	while ((ft_get_time() - start) < ms)
-		usleep(50);
+		usleep(10);
 	return (0);
 }
 
@@ -44,6 +46,7 @@ size_t	ft_get_time(void)
 	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }
 
+/* a silly title */
 void	title(t_philo philos)
 {
 	char	*title2[9];
@@ -64,6 +67,7 @@ void	title(t_philo philos)
 	subtitle(philos);
 }
 
+/* norminette split */
 void	subtitle(t_philo philos)
 {
 	printf(RESET"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -73,17 +77,8 @@ void	subtitle(t_philo philos)
 	printf("|\tTime to sleep: "YEL"%zu ms"RESET"\t\t|\n"RESET,
 		philos.time_to_sleep);
 	if (philos.num_to_eat != -1)
-		printf("|\tNumber of times to eat: "GRN"%d"RESET"\t|\n",
+		printf(BWHT"|\tNumber of times to eat: "GRN"%d"RESET"\t|\n",
 			philos.num_to_eat);
 	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
 	printf(BWHT"time\tphilo\taction\n"RESET);
 }
-
-/*
-	title[0] = " _______  __   __  ___  ___      _______  _______";
-	title[1] = "|       ||  | |  ||   ||   |    |       ||       |";
-	title[2] = "|    _  ||  |_|  ||   ||   |    |   _   ||  _____|";
-	title[3] = "|   |_| ||       ||   ||   |    |  | |  || |_____";
-	title[4] = "|    ___||       ||   ||   |___ |  |_|  ||_____  |";
-	title[5] = "|   |    |   _   ||   ||       ||       | _____| |";
-	title[6] = "|___|    |__| |__||___||_______||_______||_______|"; */

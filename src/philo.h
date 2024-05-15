@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/13 15:48:21 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/15 14:07:49 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,9 +48,8 @@ destroy mutexes/free memory
 # include <stdio.h> //printf
 # include <unistd.h> //usleep,
 # include <sys/time.h> //gettimeofday
-# include <sys/wait.h>
 # include <pthread.h> //pthread, mutex
-# define RED "\e[0;31m"
+# define RED "\e[0;31m" //pretty colors
 # define GRN "\e[0;32m"
 # define YEL "\e[0;33m"
 # define BLU "\e[0;34m"
@@ -58,7 +57,8 @@ destroy mutexes/free memory
 # define BWHT "\e[1;37m"
 # define RESET "\e[0m"
 
-/* Struct for individual philosopher info */
+/* Struct for individual philosopher info
+write_mutex is used for checking/changing perished flag and logging*/
 typedef struct s_philo
 {
 	long			time_to_die;
@@ -70,16 +70,18 @@ typedef struct s_philo
 	int				num_philos;
 	int				*forks;
 	int				perished;
+	pthread_mutex_t	write_mutex;
 }			t_philo;
 
-/* Struct containing all philos and mutexes */
+/* Struct containing all philos and mutexes
+write_mutex is used for checking/changing times_eaten*/
 typedef struct s_id
 {
 	t_philo			*philo;
 	int				id;
 	int				times_eaten;
 	pthread_mutex_t	*mutexes;
-	pthread_mutex_t	*write_mutex;
+	pthread_mutex_t	write_mutex;
 }			t_id;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~PHILO.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -87,7 +89,7 @@ int		perished(t_id *id, size_t time_from_meal, size_t routine_time);
 void	*routine(void *id);
 void	run_threads(t_id *id, pthread_t *philos_threads,
 			pthread_mutex_t *mutexes);
-int		one_philo(t_id *id);
+int		one_philo(t_philo *philo);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINES.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	pickup_fork(t_id *id, int fork_position);
@@ -97,14 +99,16 @@ void	thinking(t_id *id, size_t last_ate);
 void	sleeping(t_id *id, size_t last_ate);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINE_UTILS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+void	handle_forks(t_id *id, int left, int right,
+			void (*fork_handler)(t_id *, int));
+void	drop_forks(t_id *id);
 void	logging(char *str, t_id *id, char flag);
 int		first_sleep(t_id *id, int *first, size_t last_ate);
 int		eaten_enough_or_die(t_id *id, size_t last_ate);
-void	drop_forks(t_id *id);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ARGUMENTS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
-			t_id **philos_id);
+			t_id **philos_id, pthread_mutex_t *write_mutex);
 void	mem_init(t_philo *philos, pthread_t **philos_threads,
 			pthread_mutex_t **mutexes, t_id **philos_id);
 void	arg_error(void);

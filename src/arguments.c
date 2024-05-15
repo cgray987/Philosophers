@@ -6,14 +6,15 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:42:26 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/13 15:48:36 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/15 14:17:46 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/* initialize id struct with philos */
 void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
-			t_id **philos_id)
+			t_id **id, pthread_mutex_t *write_mutex)
 {
 	int	i;
 
@@ -21,12 +22,11 @@ void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
 	while (i < philos->num_philos)
 	{
 		philos->forks[i] = 1;
-		// printf("forks[%d] = %d\n", i, philos->forks[i]);
-		(*philos_id)[i].philo = philos;
-		(*philos_id)[i].id = i;
-		(*philos_id)[i].times_eaten = 0;
-		(*philos_id)[i].mutexes = *mutexes;
-		// (*philos_id)[i].write_mutex = write_mutex;
+		(*id)[i].philo = philos;
+		(*id)[i].id = i;
+		(*id)[i].times_eaten = 0;
+		(*id)[i].mutexes = *mutexes;
+		(*id)[i].philo->write_mutex = *write_mutex;
 		i++;
 	}
 }
@@ -49,6 +49,14 @@ void	mem_init(t_philo *philos, pthread_t **philos_threads,
 void	arg_error(void)
 {
 	printf("Bad arguments.\n");
+	printf(BWHT"Usage: ./philo A B C D [E]\n"RESET);
+	printf("Where \tA = number of philosophers\n");
+	printf("\tB = time to die\n");
+	printf("\tC = time to eat\n");
+	printf("\tD = time to sleep\n");
+	printf(YEL"\t[E] = number of times each philosopher must eat ");
+	printf("(optional)\n"RESET);
+	printf("All arguments must be positive integers.\n");
 	exit(EXIT_FAILURE);
 }
 
