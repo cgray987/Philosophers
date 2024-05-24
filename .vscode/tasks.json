@@ -6,8 +6,8 @@
         {
             "label": "philos build",
             "type": "shell",
-            "command": "make",
-            "args": ["re"],
+            "command": "cd philo && make re",
+            "args": [],
             "group":  {
                 "kind": "build",
                 "isDefault": true

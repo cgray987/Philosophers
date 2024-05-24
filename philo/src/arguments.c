@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:42:26 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/20 15:33:03 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/24 20:17:51 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
 	int	i;
 
 	i = 0;
+	(*id)->keep_running = 0;
 	while (i < philos->num_philos)
 	{
 		philos->forks[i] = 1;

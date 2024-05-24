@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/07 15:01:58 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/20 15:47:17 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/24 20:10:52 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,8 @@ void	logging(char *str, t_id *id, char flag)
 	int		error;
 
 	time = ft_get_time() - id->philo->start_time;
-	error = pthread_mutex_lock((id->log_mutex));
+	// error = pthread_mutex_lock((id->log_mutex));
+	error = 0;
 	if (error)
 	{
 		printf("Error: %s\n", strerror(error));
@@ -67,19 +68,20 @@ void	logging(char *str, t_id *id, char flag)
 		printf(BLU"%zu\t%3d\t%s"RESET"\n", time, id->id + 1, str);
 	else
 		printf("%zu\t%3d\t%s\n", time, id->id + 1, str);
-	pthread_mutex_unlock((id->log_mutex));
+	// pthread_mutex_unlock((id->log_mutex));
 }
 
 int	first_sleep(t_id *id, int *first, size_t last_ate)
 {
+	last_ate = 0;
 	if (*first == 1 && (id->id) % 2 == 0)
 	{
 		*first = 0;
 		logging("is thinking", id, 't');
 		ft_msleep(id->philo->time_to_eat);
 	}
-	if (perished(id, ft_get_time() - last_ate, 0))
-		return (1);
+	// if (perished(id, ft_get_time() - last_ate, 0))
+	// 	return (1);
 	return (0);
 }
 

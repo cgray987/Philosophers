@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:44:12 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/20 16:00:00 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/23 17:47:25 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,9 @@ int	eating(t_id *id, size_t *last_ate)
 	handle_forks(id, left, right, pickup_fork);
 	logging("is eating", id, 'e');
 	*last_ate = ft_get_time();
+	pthread_mutex_lock(&(id->philo->write_mutex));
+	id->philo->time_from_meal = *last_ate;
+	pthread_mutex_unlock(&(id->philo->write_mutex));
 	if (id->philo->time_to_eat > id->philo->time_to_die)
 	{
 		handle_forks(id, left, right, putdown_fork);
@@ -71,10 +74,11 @@ void	thinking(t_id *id, size_t last_ate)
 	long	think_time;
 
 	time = ft_get_time();
+	last_ate = time;
 	think_time = 2 * (id->philo->time_to_eat - id->philo->time_to_sleep);
+	// if (perished(id, time - last_ate, think_time))
+	// 	return ;
 	logging("is thinking", id, 't');
-	if (perished(id, time - last_ate, think_time))
-		return ;
 }
 
 /* sleep routine, checks if will die before msleep */
@@ -83,8 +87,9 @@ void	sleeping(t_id *id, size_t last_ate)
 	size_t	time;
 
 	time = ft_get_time();
+	last_ate = time;
 	logging("is sleeping", id, 's');
-	if (perished(id, time - last_ate, id->philo->time_to_sleep))
-		return ;
+	// if (perished(id, time - last_ate, id->philo->time_to_sleep))
+	// 	return ;
 	ft_msleep(id->philo->time_to_sleep);
 }

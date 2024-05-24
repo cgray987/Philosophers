@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/20 15:31:15 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/24 20:47:11 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,7 @@ typedef struct s_id
 {
 	t_philo			*philo;
 	int				id;
+	int				keep_running;
 	int				times_eaten;
 	pthread_mutex_t	*mutexes;
 	pthread_mutex_t	*log_mutex;
