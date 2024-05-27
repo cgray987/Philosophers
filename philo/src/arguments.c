@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 13:42:26 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/24 20:17:51 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/27 16:29:14 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,14 @@ void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
 	int	i;
 
 	i = 0;
-	(*id)->keep_running = 0;
 	while (i < philos->num_philos)
 	{
 		philos->forks[i] = 1;
 		(*id)[i].philo = philos;
 		(*id)[i].id = i;
 		(*id)[i].times_eaten = 0;
+		(*id)[i].last_meal_time = ft_get_time();
+		(*id)[i].keep_running = 0;
 		(*id)[i].mutexes = *mutexes;
 		(*id)[i].philo->write_mutex = *write_mutex;
 		i++;
@@ -40,6 +41,7 @@ void	mem_init(t_philo *philos, pthread_t **philos_threads,
 
 	np = philos->num_philos;
 	philos->start_time = ft_get_time();
+	// philos->time_from_meal = ft_get_time();
 	*philos_threads = malloc(np * sizeof(pthread_t));
 	*mutexes = (pthread_mutex_t *)malloc(np * sizeof(pthread_mutex_t));
 	philos->forks = malloc(np * sizeof(int));

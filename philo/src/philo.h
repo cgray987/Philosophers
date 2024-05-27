@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/24 20:47:11 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/27 14:30:06 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ typedef struct s_philo
 	long			time_to_die;
 	long			time_to_eat;
 	long			time_to_sleep;
-	long			time_from_meal;
+	size_t			time_from_meal;
 	long			start_time;
 	int				num_to_eat;
 	int				num_philos;
@@ -81,6 +81,8 @@ typedef struct s_id
 	int				id;
 	int				keep_running;
 	int				times_eaten;
+	size_t			last_meal_time;
+	pthread_mutex_t	*monitor;
 	pthread_mutex_t	*mutexes;
 	pthread_mutex_t	*log_mutex;
 }			t_id;
@@ -95,16 +97,16 @@ int		one_philo(t_philo *philo);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINES.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	pickup_fork(t_id *id, int fork_position);
 void	putdown_fork(t_id *id, int fork_position);
-int		eating(t_id *id, size_t *last_ate);
-void	thinking(t_id *id, size_t last_ate);
-void	sleeping(t_id *id, size_t last_ate);
+int		eating(t_id *id);
+void	thinking(t_id *id);
+void	sleeping(t_id *id);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINE_UTILS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	handle_forks(t_id *id, int left, int right,
 			void (*fork_handler)(t_id *, int));
 void	drop_forks(t_id *id);
 void	logging(char *str, t_id *id, char flag);
-int		first_sleep(t_id *id, int *first, size_t last_ate);
+int		first_sleep(t_id *id, int *first);
 int		eaten_enough_or_die(t_id *id, size_t last_ate);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ARGUMENTS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
