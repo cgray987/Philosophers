@@ -5,79 +5,37 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/16 13:44:12 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/27 15:37:01 by cgray            ###   ########.fr       */
+/*   Created: 2024/05/28 15:20:46 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/28 15:38:24 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-/* locks and picks up fork */
-void	pickup_fork(t_id *id, int fork_position)
+void	eating(t_philo *philo)
 {
-	pthread_mutex_lock(&(id->mutexes[fork_position]));
-	// pthread_mutex_lock(&(id->philo->write_mutex));
-	id->philo->forks[fork_position] = 0;
-	logging("has taken a fork", id, 'f');
-	// pthread_mutex_unlock(&(id->philo->write_mutex));
+	mutex(&philo->first_fork->fork, LOCK);
+	logging("has taken a fork", philo, 'f');
+	mutex(&philo->second_fork->fork, LOCK);
+	logging("has taken a fork", philo, 'f');
+	set_long(&philo->philo_mutex, &philo->meals_count, get_time_ms());
+	logging("is eating", philo, 'e');
+	philo->meals_count++;
+	p_delay(philo->global->time_to_eat, philo->global);
+	mutex(&philo->first_fork->fork, UNLOCK);
+	mutex(&philo->second_fork->fork, UNLOCK);
+	if (philo->global->nbr_of_meals > 0
+		&& philo->global->nbr_of_meals == philo->meals_count)
+		set_bool(&philo->philo_mutex, &philo->eaten_enough, true);
 }
 
-/* unlocks and puts fork down */
-void	putdown_fork(t_id *id, int fork_position)
+void	thinking(t_philo *philo)
 {
-	pthread_mutex_unlock(&(id->mutexes[fork_position]));
-	// pthread_mutex_lock(&(id->philo->write_mutex));
-	id->philo->forks[fork_position] = 1;
-	// pthread_mutex_unlock(&(id->philo->write_mutex));
+	logging("is thinking", philo, 't');
 }
 
-/* if available, grabs left and right forks.
--- if last philo, left fork is fork 1
--- else left fork is id + 1
-- call log to eat
-- check if time to eat > time to die
-- put down forks
-- increment times eaten */
-int	eating(t_id *id)
+void	sleeping(t_philo *philo)
 {
-	int	left;
-	int	right;
-	size_t	last_ate;
-
-	right = id->id;
-	if (id->id == id->philo->num_philos - 1)
-		left = 0;
-	else
-		left = id->id + 1;
-	handle_forks(id, left, right, pickup_fork);
-	logging("is eating", id, 'e');
-	last_ate = ft_get_time();
-	pthread_mutex_lock(&(id->philo->write_mutex));
-	id->last_meal_time = last_ate;
-	// printf("\t%d time from meal: %zu\n", id->id + 1, ft_get_time() - id->philo->time_from_meal);
-	pthread_mutex_unlock(&(id->philo->write_mutex));
-	if (id->philo->time_to_eat > id->philo->time_to_die)
-	{
-		handle_forks(id, left, right, putdown_fork);
-		ft_msleep(id->philo->time_to_die);
-		return (1);
-	}
-	ft_msleep(id->philo->time_to_eat);
-	handle_forks(id, left, right, putdown_fork);
-	id->times_eaten++;
-	return (0);
-}
-
-/* think routine, think_time can be zero
-checks if will die before msleep think_time*/
-void	thinking(t_id *id)
-{
-	logging("is thinking", id, 't');
-}
-
-/* sleep routine, checks if will die before msleep */
-void	sleeping(t_id *id)
-{
-	logging("is sleeping", id, 's');
-	ft_msleep(id->philo->time_to_sleep);
+	logging("is sleeping", philo, 's');
+	p_delay(philo->global->time_to_sleep, philo->global);
 }

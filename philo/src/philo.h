@@ -5,50 +5,21 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/13 12:13:19 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/27 14:30:06 by cgray            ###   ########.fr       */
+/*   Created: 2024/05/28 12:24:00 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/28 16:28:06 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-/*
-Read values from arguments
-	-av[1]: number of philos
-	-av[2]: time to die
-	-av[3]: time to eat
-	-av[4]: time to sleep
-	-optional
-		-av[5]: num of times philos must eat
-
-		-atoi each number into struct
-		-each num > 0
-
-init memory and struct
-
-create mutex lock and thread for each philo
-	-run philo routine, breaking if any philo dies
-		-will eat, sleep, and think
-			-eat
-				-pick up right fork - mutex lock
-				-pick up left fork - mutex lock
-					-print both
-				-eat for input sec
-				-put down both forks by unlocking mutexes
-			-sleep for input sec, print sleep msg
-			-display think msg
-	-monitor
-		-checks until philo dies or ate all needed meals
-		-breaks loop if either case
-
-destroy mutexes/free memory
- */
-
 #ifndef PHILO_H
-# define PHILO_H
-# include <stdlib.h> //mem fns
+
 # include <stdio.h> //printf
-# include <unistd.h> //usleep,
+# include <stdlib.h> //malloc/free
+# include <unistd.h> //usleep
+# include <stdbool.h> //true/false
+# include <pthread.h> //mutexes/threads
 # include <sys/time.h> //gettimeofday
-# include <pthread.h> //pthread, mutex
+# include <limits.h> //INTMAX
+
 # define RED "\e[0;31m" //pretty colors
 # define GRN "\e[0;32m"
 # define YEL "\e[0;33m"
@@ -57,77 +28,99 @@ destroy mutexes/free memory
 # define BWHT "\e[1;37m"
 # define RESET "\e[0m"
 
-/* Struct for individual philosopher info
-write_mutex is used for checking/changing perished flag and logging*/
+# define INPUT_ERROR BWHT"Bad arguments.\n"RESET\
+			"Usage: ./philo A B C D [E]\n"\
+			"Where \tA = number of philosophers\n"\
+			"\tB = time to die\n"\
+			"\tC = time to eat\n"\
+			"\tD = time to sleep\n"\
+			YEL"\t[E] = number of times each philosopher must eat "\
+			"(optional)\n"RESET\
+			"All arguments must be positive integers."\
+
+//STRUCTS
+
+typedef pthread_mutex_t	t_mutex;
+typedef struct s_philo	t_philo;
+
+typedef enum e_thread_codes
+{
+	LOCK,
+	UNLOCK,
+	INIT,
+	DESTROY,
+	CREATE,
+	JOIN,
+	DETACH,
+}	t_thread_codes;
+
+typedef struct s_fork
+{
+	t_mutex		fork;
+	int			fork_pos;
+}				t_fork;
+
+typedef struct s_global
+{
+	long	nbr_of_philos;
+	long	time_to_die;
+	long	time_to_eat;
+	long	time_to_sleep;
+	long	nbr_of_meals;
+	long	start_time;
+	bool	stop_dinner;
+	bool	thread_sync;
+	long	threads_running;
+	pthread_t	organ_farmer;
+	t_mutex	global_mutex;
+	t_mutex	log_mutex;
+	t_fork	*forks;		//array of forks
+	t_philo	*philos;	//array of philos
+}				t_global;
+
 typedef struct s_philo
 {
-	long			time_to_die;
-	long			time_to_eat;
-	long			time_to_sleep;
-	size_t			time_from_meal;
-	long			start_time;
-	int				num_to_eat;
-	int				num_philos;
-	int				*forks;
-	int				perished;
-	pthread_mutex_t	write_mutex;
-}			t_philo;
+	int			pos;
+	long		meals_count;
+	bool		eaten_enough;
+	long		meal_timestamp;
+	t_fork		*first_fork;
+	t_fork		*second_fork;
+	pthread_t	philo_thread_id;
+	t_mutex		philo_mutex;
+	t_global	*global;	//pointer to global/input data
+}				t_philo;
 
-/* Struct containing all philos and mutexes
-write_mutex is used for checking/changing times_eaten*/
-typedef struct s_id
-{
-	t_philo			*philo;
-	int				id;
-	int				keep_running;
-	int				times_eaten;
-	size_t			last_meal_time;
-	pthread_mutex_t	*monitor;
-	pthread_mutex_t	*mutexes;
-	pthread_mutex_t	*log_mutex;
-}			t_id;
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~virtual_dinner.c~~~~~~~~~~~~~~~~~~~~~~~ */
+void	start_sim(t_global *global);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~routines.c~~~~~~~~~~~~~~~~~~~~~~~ */
+void	eating(t_philo *philo);
+void	thinking(t_philo *philo);
+void	sleeping(t_philo *philo);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~get_and_set.c~~~~~~~~~~~~~~~~~~~~~~~ */
+void	set_bool(t_mutex *mtx, bool *dest, bool value);
+bool	get_bool(t_mutex *mtx, bool *value);
+void	set_long(t_mutex *mtx, long *dest, long value);
+long	get_long(t_mutex *mtx, long *value);
+void	increase_long(t_mutex *mtx, long *value);
+bool	dinner_done(t_global *global);
 
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~PHILO.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-int		perished(t_id *id, size_t time_from_meal, size_t routine_time);
-void	*routine(void *id);
-void	run_threads(t_id *id, pthread_t *philos_threads,
-			pthread_mutex_t *mutexes);
-int		one_philo(t_philo *philo);
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINES.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void	pickup_fork(t_id *id, int fork_position);
-void	putdown_fork(t_id *id, int fork_position);
-int		eating(t_id *id);
-void	thinking(t_id *id);
-void	sleeping(t_id *id);
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~ROUTINE_UTILS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void	handle_forks(t_id *id, int left, int right,
-			void (*fork_handler)(t_id *, int));
-void	drop_forks(t_id *id);
-void	logging(char *str, t_id *id, char flag);
-int		first_sleep(t_id *id, int *first);
-int		eaten_enough_or_die(t_id *id, size_t last_ate);
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~ARGUMENTS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void	philo_init(t_philo *philos, pthread_mutex_t **mutexes,
-			t_id **philos_id, pthread_mutex_t *write_mutex);
-void	mem_init(t_philo *philos, pthread_t **philos_threads,
-			pthread_mutex_t **mutexes, t_id **philos_id);
-void	arg_error(void);
-void	get_args(int ac, char **av, t_philo *philos);
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~ARG_UTILS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-int		ft_isdigit(int c);
-int		check_av_for_non_digit(int ac, char **av);
-long	ft_atol(const char *string);
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~UTILS.C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void	free_philos(t_philo *philos, pthread_t **philos_threads,
-			pthread_mutex_t **mutexes, t_id **id);
-int		ft_msleep(size_t ms);
-size_t	ft_get_time(void);
-void	title(t_philo philos);
-void	subtitle(t_philo philos);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~sync.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+void	p_delay(long wait, t_global *global);
+size_t	get_time_ms(void);
+void	wait_for_thread_sync(t_global *global);
+bool	all_threads_running(t_mutex *mtx, long *threads, long num_of_philos);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~wrappers.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+void	*cool_malloc(size_t bytes);
+void	*mutex(t_mutex *mutex, t_thread_codes code);
+void	*thread(pthread_t *thread, void *(*routine)(void *),
+		void *global, t_thread_codes code);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~init.c~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+void	init_data(t_global *global);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~input.c~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+void	get_input(t_global *global, int ac, char **av);
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~utils.c~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+void	logging(const char *str, t_philo *philo, char flag);
+void	display_error(const char *str);
 
 #endif
