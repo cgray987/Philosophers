@@ -1,0 +1,701 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_and_set.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 14:11:01 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/28 16:19:28 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+/* sets value of ptr to bool using a mutex */
+void	set_bool(t_mutex *mtx, bool *dest, bool value)
+{
+	mutex(mtx, LOCK);
+	*dest = value;
+	mutex(mtx, UNLOCK);
+}
+
+/* reads a ptr to a bool using a mutex */
+bool	get_bool(t_mutex *mtx, bool *value)
+{
+	bool	ret;
+
+	mutex(mtx, LOCK);
+	ret = *value;
+	mutex(mtx, UNLOCK);
+	return (ret);
+}
+
+/* sets value of ptr to bool using a mutex */
+void	set_long(t_mutex *mtx, long *dest, long value)
+{
+	mutex(mtx, LOCK);
+	*dest = value;
+	mutex(mtx, UNLOCK);
+}
+
+/* reads a ptr to a long using a mutex */
+long	get_long(t_mutex *mtx, long *value)
+{
+	long	ret;
+
+	mutex(mtx, LOCK);
+	ret = *value;
+	mutex(mtx, UNLOCK);
+	return (ret);
+}
+
+void	increase_long(t_mutex *mtx, long *value)
+{
+	mutex(mtx, LOCK);
+	(*value)++;
+	mutex(mtx, UNLOCK);
+}
+
+/* used for running sim/monitor thread */
+bool	dinner_done(t_global *global)
+{
+	return (get_bool(&global->global_mutex, &global->stop_dinner));
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 12:58:47 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/29 13:25:54 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+/*                                             🧙3
+                                         , - ~ ~ ~ - ,
+                                     , '        🍝      ' ,
+                                   ,                       ,
+                                  ,     🍴2          🍴3    ,
+                                 ,                           ,
+                            🧙2  , 🍝                     🍝 ,  🧙4
+                                 ,                           ,
+                                  ,                         ,
+                                   ,     🍴1        🍴0    ,
+                                     ,          🍝      , '
+                                       ' - , _ __ ,  '
+                                               🧙1
+
+	🧙1 grabs 🍴1 then 🍴0
+	🧙2 grabs 🍴1 then 🍴2
+	🧙3 grabs 🍴3 then 🍴2
+	🧙4 grabs 🍴3 then 🍴0
+*/
+
+/* Philos try to grab same fork as their neighbor,
+	avoiding deadlock trap where all philos pick up one fork
+		first fork is philo pos + 1, unless last philo, where it is 0 pos
+		second fork is philo pos
+		UNLESS your position is even, then opposite
+
+	Note: philo->pos starts from 1 while fork_pos starts from 0
+ */
+static void assign_forks(t_philo *philo, t_fork *forks, int fork_pos)
+{
+	int	np;
+
+	np = philo->global->nbr_of_philos;
+	philo->first_fork = &forks[(fork_pos + 1) % np];
+	philo->second_fork = &forks[fork_pos];
+	if (philo->pos % 2 == 0) //grab opposite if position is even to avoid deadlock (thanks Martin <3)
+	{
+		philo->first_fork = &forks[fork_pos];
+		philo->second_fork = &forks[(fork_pos + 1) % np];
+	}
+}
+
+static void	init_philo(t_global *global)
+{
+	int		i;
+	t_philo	*philo;
+
+	i = -1;
+	while (++i < global->nbr_of_philos)
+	{
+		philo = global->philos + i;
+		philo->pos = i + 1;
+		philo->eaten_enough = false;
+		philo->meals_count = 0;
+		mutex(&philo->philo_mutex, INIT);
+		philo->global = global;
+		assign_forks(philo, global->forks, i);
+	}
+}
+
+void	init_data(t_global *global)
+{
+	long	np;
+	int		i;
+
+	np = global->nbr_of_philos;
+	global->stop_dinner = false;
+	global->thread_sync = false;
+	global->threads_running = 0;
+	global->philos = cool_malloc(sizeof(t_philo) * np);
+	global->forks = cool_malloc(sizeof(t_fork) * np);
+	mutex(&global->global_mutex, INIT);
+	mutex(&global->log_mutex, INIT);
+	i = -1;
+	while (++i < np)
+	{
+		mutex(&global->forks[i].fork, INIT);
+		global->forks[i].fork_pos = i;
+	}
+	init_philo(global);
+
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   input.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 12:46:29 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/28 16:21:51 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+static int	ft_isdigit(int c)
+{
+	if ((c >= '0' && c <= '9'))
+		return (1);
+	return (0);
+}
+
+static int	check_av_for_non_digit(int ac, char **av)
+{
+	int	i;
+
+	i = 0;
+	while (--ac >= 1)
+	{
+		while (av[ac][i])
+		{
+			if (!ft_isdigit(av[ac][i]))
+			{
+				return (1);
+			}
+			i++;
+		}
+	}
+	return (0);
+}
+
+/* converts given string to a long
+	digits in string can be proceeded by spaces/linefeeds,
+	'-' or '+' changes sign of number.
+	stops after the first non-digit after string digits */
+static long	ft_atol(const char *string)
+{
+	long	num;
+	int		neg;
+
+	num = 0;
+	neg = 1;
+	while (*string == ' ' || (*string >= 9 && *string <= 13))
+		string++;
+	if (*string == '-' || *string == '+')
+	{
+		if (*string == '-')
+			neg = -1;
+		string++;
+	}
+	while (*string >= '0' && *string <= '9')
+	{
+		num = num * 10 + *string - '0';
+		string++;
+	}
+	return (num * neg);
+}
+
+/*
+	check for non digits in input
+	assign input data to global struct
+		./philo #_of_philos ttd tte tts [#_of_meals]
+ */
+void	get_input(t_global *global, int ac, char **av)
+{
+	if (check_av_for_non_digit(ac, av))
+		display_error(INPUT_ERROR);
+	global->nbr_of_philos = ft_atol(av[1]);
+	global->time_to_die = ft_atol(av[2]);
+	global->time_to_eat = ft_atol(av[3]);
+	global->time_to_sleep = ft_atol(av[4]);
+	if (global->nbr_of_philos < 1 || global->time_to_die < 0
+		|| global->time_to_eat < 0 || global->time_to_sleep < 0)
+		display_error(INPUT_ERROR);
+	if (ac == 6)
+	{
+		global->nbr_of_meals = ft_atol(av[5]);
+		if (global->nbr_of_meals < 0)
+			display_error(INPUT_ERROR);
+	}
+	else
+		global->nbr_of_meals = -1;
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 12:34:49 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/28 17:05:07 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+/*
+	./philo 5 800 200 200 [5]
+	./philo #_of_philos ttd tte tts [#_of_meals]
+ */
+int	main(int ac, char **av)
+{
+	t_global	global;
+
+	if (ac == 5 || ac == 6)
+	{
+		get_input(&global, ac, av);
+
+		init_data(&global);
+
+		start_sim(&global);
+
+		// free_philos(&global);
+	}
+	else
+	{
+		display_error(INPUT_ERROR);
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   routines.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 15:20:46 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/29 13:59:22 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+void	eating(t_philo *philo)
+{
+	mutex(&philo->first_fork->fork, LOCK);
+	logging("has taken a fork", philo, 'f');
+	mutex(&philo->second_fork->fork, LOCK);
+	logging("has taken a fork", philo, 'f');
+	set_long(&philo->philo_mutex, &philo->meals_count, get_time_ms());
+	logging("is eating", philo, 'e');
+	philo->meals_count++;
+	// p_delay(philo->global->time_to_eat, philo->global);
+	ft_msleep(philo->global->time_to_eat);
+	if (philo->global->nbr_of_meals > 0
+		&& philo->global->nbr_of_meals == philo->meals_count)
+		set_bool(&philo->philo_mutex, &philo->eaten_enough, true);
+	mutex(&philo->first_fork->fork, UNLOCK);
+	mutex(&philo->second_fork->fork, UNLOCK);
+}
+
+void	thinking(t_philo *philo)
+{
+	logging("is thinking", philo, 't');
+}
+
+void	sleeping(t_philo *philo)
+{
+	logging("is sleeping", philo, 's');
+	// p_delay(philo->global->time_to_sleep, philo->global);
+	ft_msleep(philo->global->time_to_sleep);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   sync.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 14:24:41 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/29 13:42:43 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+/* returns current time in microsec */
+static size_t	get_time_us(void)
+{
+	struct timeval	time;
+
+	if (gettimeofday(&time, NULL) == -1)
+		display_error("gettimeofday error???");
+	return (time.tv_sec * 1e6 + time.tv_usec);
+}
+
+int	ft_msleep(size_t ms)
+{
+	size_t	start;
+
+	start = get_time_ms();
+	while ((get_time_ms() - start) < ms)
+		usleep(10);
+	return (0);
+}
+
+/* more precise usleep using spinlock */
+void	p_delay(long wait, t_global *global)
+{
+	long	start;
+	long	time_since;
+	long	remaining;
+
+	start = get_time_us();
+	while ((long)get_time_us() - start < wait)
+	{
+		if (dinner_done(global))
+			break;
+		time_since = get_time_us();
+		remaining = wait - time_since;
+		if (remaining > 1e4)
+			usleep(remaining / 2);
+		else
+		{
+			while ((long)get_time_us() - start < wait)
+				;
+		}
+	}
+}
+
+/* returns current time in millisec */
+size_t	get_time_ms(void)
+{
+	struct timeval	time;
+
+	if (gettimeofday(&time, NULL) == -1)
+		display_error("gettimeofday error???");
+	return (time.tv_sec * 1e3 + time.tv_usec / 1e3);
+}
+
+/* waits until all threads have started by running while loop
+	until thread_sync flag is true */
+void	wait_for_thread_sync(t_global *global)
+{
+	while (!get_bool(&global->global_mutex, &global->thread_sync))
+		;
+}
+
+bool	all_threads_running(t_mutex *mtx, long *threads, long num_of_philos)
+{
+	bool	ret;
+
+	ret = false;
+	mutex(mtx, LOCK);
+	if (*threads == num_of_philos)
+		ret = true;
+	mutex(mtx, UNLOCK);
+	return (ret);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 12:40:03 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/29 14:00:27 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+
+void	logging(const char *str, t_philo *philo, char flag)
+{
+	size_t	time;
+
+	if (get_bool(&philo->philo_mutex, &philo->eaten_enough)) //might need mutex
+		return;
+	mutex(&philo->global->log_mutex, LOCK);
+	time = get_time_ms() - philo->global->start_time;
+	if (!dinner_done(philo->global))
+	{
+		if (flag == 'd')
+			printf(BRED"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+		else if (flag == 'e')
+			printf(GRN"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+		else if (flag == 's')
+			printf(YEL"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+		else if (flag == 't')
+			printf(BLU"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+		else
+			printf("%-ld\t%3d\t%s\n", time, philo->pos, str);
+	}
+	mutex(&philo->global->log_mutex, UNLOCK);
+}
+
+void	display_error(const char *str)
+{
+	printf("%s\n", str);
+	exit(EXIT_FAILURE);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   virtual_dinner.c                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 13:57:53 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/29 14:04:36 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+static bool perished(t_philo *philo)
+{
+	long	time_since_meal;
+	long	ttd;
+
+	if (get_bool(&philo->philo_mutex, &philo->eaten_enough))
+		return (false);
+	ttd = philo->global->time_to_die;
+	time_since_meal = get_time_ms() - get_long(&philo->philo_mutex, &philo->meal_timestamp);
+	// printf("ttd %ld", ttd);
+	if (time_since_meal > ttd)
+		return (true);
+	return (false);
+
+}
+
+static void	*organ_farmer(void *v_global)
+{
+	t_global *global;
+	int		i;
+
+	global = (t_global *)v_global;
+	while (!all_threads_running(&global->global_mutex, &global->threads_running, global->nbr_of_meals))
+		;
+	while (!dinner_done(global))
+	{
+		i = -1;
+		while (++i < global->nbr_of_philos)
+		{
+			if (perished(global->philos + i))
+			{
+				set_bool(&global->global_mutex, &global->stop_dinner, true);
+				logging("has died", global->philos + i, 'd');
+			}
+		}
+	}
+
+	return (NULL);
+}
+
+/* wait for all threads to get started
+increase number of threads when each philo starts dinner routine
+
+go thru eat/sleep/think routines if not dead or full */
+static void	*dinner_routine(void *v_philo)
+{
+	t_philo *philo;
+
+	philo = (t_philo *)v_philo;
+
+	wait_for_thread_sync(philo->global);
+	set_long(&philo->philo_mutex, &philo->meal_timestamp, get_time_ms());
+	increase_long(&philo->global->global_mutex, &philo->global->threads_running);
+
+	while (!dinner_done(philo->global))
+	{
+		if (get_bool(&philo->philo_mutex, &philo->eaten_enough)) //mutex?
+			break ;
+		eating(philo);
+		sleeping(philo);
+		thinking(philo);
+	}
+
+	return (NULL);
+}
+
+void	*one_philo(void *v_philo)
+{
+	t_philo	*philo;
+
+	philo = (t_philo *)v_philo;
+	wait_for_thread_sync(philo->global);
+	increase_long(&philo->global->global_mutex, &philo->global->threads_running);
+	set_long(&philo->philo_mutex, &philo->meal_timestamp, get_time_ms());
+	logging("has taken a fork", philo, 'f');
+	while (!dinner_done(philo->global))
+		usleep(42);
+	return (NULL);
+}
+
+void	start_sim(t_global *global)
+{
+	int	i;
+
+	i = -1;
+	if (global->nbr_of_meals == 0)
+		return ;
+	else if (global->nbr_of_philos == 1)
+		one_philo(&global);
+	else
+	{
+		while (++i < global->nbr_of_philos)
+		{
+			thread(&global->philos[i].philo_thread_id, dinner_routine, &global->philos[i], CREATE);
+		}
+	}
+	thread(&global->organ_farmer, organ_farmer, &global, CREATE);
+	//all threads started
+	set_long(&global->global_mutex, &global->start_time, get_time_ms());
+	set_bool(&global->global_mutex, &global->thread_sync, true);
+
+	i = -1;
+	while (++i < global->nbr_of_philos)
+		thread(&global->philos[i].philo_thread_id, NULL, NULL, JOIN);
+	//all philos have eaten enough
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   wrappers.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/28 12:59:36 by cgray             #+#    #+#             */
+/*   Updated: 2024/05/29 14:09:49 by cgray            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+
+
+/* might want to copy the actual error codes/messages
+	if running into mutex errors, but for now just exit
+ */
+static void	mutex_error(int	status, t_thread_codes code)
+{
+	if (status == 0)
+		return ;
+	if (status == EINVAL && (LOCK == code || UNLOCK == code))
+		display_error("The value specified by mutex is invalid");
+	else if (status == EINVAL && INIT == code)
+		display_error("The value specified by attr is invalid.");
+	else if (status == EDEADLK)
+	{
+		display_error("A deadlock would occur if the thread "
+			"blocked waiting for mutex.");
+	}
+	else if (status == EPERM)
+		display_error("The current thread does not hold a lock on mutex.");
+	else if (status == ENOMEM)
+	{
+		display_error("The process cannot allocate enough memory"
+			" to create another mutex.");
+	}
+	else if (status == EBUSY)
+		display_error("Mutex is locked");
+	else
+		display_error("Mutex Failure???");
+}
+
+static void	thread_error(int status, t_thread_codes code)
+{
+	if (status == 0)
+		return ;
+	if (status == EAGAIN)
+		display_error("No resources to create another thread");
+	else if (status == EPERM)
+		display_error("The caller does not have appropriate permission\n");
+	else if (status == EINVAL && CREATE == code)
+		display_error("The value specified by attr is invalid.");
+	else if (status == EINVAL && (JOIN == code || DETACH == code))
+		display_error("The value specified by thread is not joinable\n");
+	else if (status == ESRCH)
+	{
+		display_error("No thread could be found corresponding to that"
+			"specified by the given thread ID, thread.");
+	}
+	else if (status == EDEADLK)
+	{
+		display_error("A deadlock was detected or the value of"
+			"thread specifies the calling thread.");
+	}
+	else
+		display_error("Thread Failure???");
+}
+
+/* malloc wrapper to exit if allocation fails */
+void	*cool_malloc(size_t bytes)
+{
+	void	*alloc;
+
+	alloc = malloc(bytes);
+	if (alloc == NULL)
+		display_error("Malloc failed?????");
+	return (alloc);
+}
+
+/* mutex wrapper that will exit if thrown error code
+thanks Oceano <3
+*/
+void	mutex(t_mutex *mutex, t_thread_codes code)
+{
+	if (code == LOCK)
+		mutex_error(pthread_mutex_lock(mutex), code);
+	else if (code == UNLOCK)
+		mutex_error(pthread_mutex_unlock(mutex), code);
+	else if (code == INIT)
+		mutex_error(pthread_mutex_init(mutex, NULL), code);
+	else if (code == DESTROY)
+		mutex_error(pthread_mutex_destroy(mutex), code);
+	else
+		display_error("Mutex handle misuse");
+}
+
+/* thread function wrapper that will exit if thrown error code
+	Parameters:
+		- thread,
+		- function ptr to routine functions
+		- global data struct (to be cast as t_global)
+		- thread code name
+*/
+void	thread(pthread_t *thread, void *(*routine)(void *),
+		void *global, t_thread_codes code)
+{
+	if (code == CREATE)
+		thread_error(pthread_create(thread, NULL, routine, global), code);
+	else if (code == JOIN)
+		thread_error(pthread_join(*thread, NULL), code);
+	else if (code == DETACH)
+		thread_error(pthread_detach(*thread), code);
+	else
+		display_error("Thread handle misuse");
+}
