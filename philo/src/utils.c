@@ -6,19 +6,18 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:40:03 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 15:21:32 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 17:17:38 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-
 void	logging(const char *str, t_philo *philo, char flag)
 {
 	size_t	time;
 
-	if (get_bool(&philo->philo_mutex, &philo->eaten_enough)) //might need mutex
-		return;
+	if (get_bool(&philo->philo_mutex, &philo->eaten_enough))
+		return ;
 	mutex(&philo->global->log_mutex, LOCK);
 	time = get_time_ms() - philo->global->start_time;
 	if (!dinner_done(philo->global))
@@ -39,6 +38,19 @@ void	logging(const char *str, t_philo *philo, char flag)
 
 void	display_error(const char *str)
 {
+	if (!str)
+	{
+		printf(BWHT"Bad arguments.\n"RESET
+			"Usage: ./philo A B C D [E]\n"
+			"Where \tA = number of philosophers\n"
+			"\tB = time to die\n"
+			"\tC = time to eat\n"
+			"\tD = time to sleep\n"
+			YEL"\t[E] = number of times each philosopher must eat "
+			"(optional)\n"RESET
+			"All arguments must be positive integers.\n");
+		exit(EXIT_FAILURE);
+	}
 	printf("%s\n", str);
 	exit(EXIT_FAILURE);
 }

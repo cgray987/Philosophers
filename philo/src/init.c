@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:58:47 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 13:25:54 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 17:06:48 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,14 +40,14 @@
 
 	Note: philo->pos starts from 1 while fork_pos starts from 0
  */
-static void assign_forks(t_philo *philo, t_fork *forks, int fork_pos)
+static void	assign_forks(t_philo *philo, t_fork *forks, int fork_pos)
 {
 	int	np;
 
 	np = philo->global->nbr_of_philos;
 	philo->first_fork = &forks[(fork_pos + 1) % np];
 	philo->second_fork = &forks[fork_pos];
-	if (philo->pos % 2 == 0) //grab opposite if position is even to avoid deadlock (thanks Martin <3)
+	if (philo->pos % 2 == 0)
 	{
 		philo->first_fork = &forks[fork_pos];
 		philo->second_fork = &forks[(fork_pos + 1) % np];
@@ -92,5 +92,4 @@ void	init_data(t_global *global)
 		global->forks[i].fork_pos = i;
 	}
 	init_philo(global);
-
 }

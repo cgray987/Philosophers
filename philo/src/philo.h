@@ -6,11 +6,12 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:24:00 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 15:47:35 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 17:44:03 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PHILO_H
+# define PHILO_H
 
 # include <stdio.h> //printf
 # include <stdlib.h> //malloc/free
@@ -29,22 +30,12 @@
 # define BWHT "\e[1;37m"
 # define RESET "\e[0m"
 
-# define INPUT_ERROR BWHT"Bad arguments.\n"RESET\
-			"Usage: ./philo A B C D [E]\n"\
-			"Where \tA = number of philosophers\n"\
-			"\tB = time to die\n"\
-			"\tC = time to eat\n"\
-			"\tD = time to sleep\n"\
-			YEL"\t[E] = number of times each philosopher must eat "\
-			"(optional)\n"RESET\
-			"All arguments must be positive integers."\
-
 //STRUCTS
 
-typedef pthread_mutex_t	t_mutex;
+typedef pthread_mutex_t	t_mutex; //rename for conciseness
 typedef struct s_philo	t_philo;
 
-typedef enum e_thread_codes
+typedef enum e_thread_codes //used for mutex/thread error handling
 {
 	LOCK,
 	UNLOCK,
@@ -63,20 +54,20 @@ typedef struct s_fork
 
 typedef struct s_global
 {
-	long	nbr_of_philos;
-	long	time_to_die;
-	long	time_to_eat;
-	long	time_to_sleep;
-	long	nbr_of_meals;
-	long	start_time;
-	bool	stop_dinner;
-	bool	thread_sync;
-	long	threads_running;
+	long		nbr_of_philos;
+	long		time_to_die;
+	long		time_to_eat;
+	long		time_to_sleep;
+	long		nbr_of_meals;
+	long		start_time;
+	bool		stop_dinner;
+	bool		thread_sync;
+	long		threads_running;
 	pthread_t	organ_farmer;
-	t_mutex	global_mutex;
-	t_mutex	log_mutex;
-	t_fork	*forks;		//array of forks
-	t_philo	*philos;	//array of philos
+	t_mutex		global_mutex;
+	t_mutex		log_mutex;
+	t_fork		*forks;		//array of forks
+	t_philo		*philos;	//array of philos
 }				t_global;
 
 typedef struct s_philo
@@ -106,18 +97,18 @@ void	set_long(t_mutex *mtx, long *dest, long value);
 long	get_long(t_mutex *mtx, long *value);
 void	increase_long(t_mutex *mtx, long *value);
 bool	dinner_done(t_global *global);
-
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~sim_check.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+bool	all_threads_running(t_mutex *mtx, long *threads, long num_of_philos);
+void	wait_for_thread_sync(t_global *global);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~sync.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-int		ft_msleep(size_t ms);
 void	p_delay(long wait, t_global *global);
 size_t	get_time_ms(void);
-void	wait_for_thread_sync(t_global *global);
-bool	all_threads_running(t_mutex *mtx, long *threads, long num_of_philos);
+void	un_sync(t_philo *philo);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~wrappers.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	*cool_malloc(size_t bytes);
 void	mutex(t_mutex *mutex, t_thread_codes code);
 void	thread(pthread_t *thread, void *(*routine)(void *),
-		void *global, t_thread_codes code);
+			void *global, t_thread_codes code);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~init.c~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	init_data(t_global *global);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~input.c~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

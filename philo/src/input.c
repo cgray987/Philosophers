@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:46:29 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/28 16:21:51 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 17:15:44 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,19 +73,19 @@ static long	ft_atol(const char *string)
 void	get_input(t_global *global, int ac, char **av)
 {
 	if (check_av_for_non_digit(ac, av))
-		display_error(INPUT_ERROR);
+		display_error(NULL);
 	global->nbr_of_philos = ft_atol(av[1]);
 	global->time_to_die = ft_atol(av[2]);
 	global->time_to_eat = ft_atol(av[3]);
 	global->time_to_sleep = ft_atol(av[4]);
 	if (global->nbr_of_philos < 1 || global->time_to_die < 0
 		|| global->time_to_eat < 0 || global->time_to_sleep < 0)
-		display_error(INPUT_ERROR);
+		display_error(NULL);
 	if (ac == 6)
 	{
 		global->nbr_of_meals = ft_atol(av[5]);
 		if (global->nbr_of_meals < 0)
-			display_error(INPUT_ERROR);
+			display_error(NULL);
 	}
 	else
 		global->nbr_of_meals = -1;

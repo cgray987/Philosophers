@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 14:11:01 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/28 16:19:28 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 17:24:22 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,10 +55,4 @@ void	increase_long(t_mutex *mtx, long *value)
 	mutex(mtx, LOCK);
 	(*value)++;
 	mutex(mtx, UNLOCK);
-}
-
-/* used for running sim/monitor thread */
-bool	dinner_done(t_global *global)
-{
-	return (get_bool(&global->global_mutex, &global->stop_dinner));
 }

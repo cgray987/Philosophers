@@ -6,18 +6,13 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:59:36 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 14:09:49 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 17:18:21 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-
-
-/* might want to copy the actual error codes/messages
-	if running into mutex errors, but for now just exit
- */
-static void	mutex_error(int	status, t_thread_codes code)
+static void	mutex_error(int status, t_thread_codes code)
 {
 	if (status == 0)
 		return ;
