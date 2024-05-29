@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:24:00 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 15:47:35 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 16:48:12 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 # define BLU "\e[0;34m"
 # define BRED "\e[1;31m"
 # define BWHT "\e[1;37m"
+# define BCYN "\e[1;36m"
 # define RESET "\e[0m"
 
 # define INPUT_ERROR BWHT"Bad arguments.\n"RESET\

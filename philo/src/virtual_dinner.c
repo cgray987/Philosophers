@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:57:53 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 15:48:56 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 16:12:13 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ static bool perished(t_philo *philo)
 	if (get_bool(&philo->philo_mutex, &philo->eaten_enough))
 		return (false);
 	ttd = philo->global->time_to_die;
-	time_since_meal = get_time_ms() - philo->meal_timestamp;
+	time_since_meal = get_time_ms() - get_long(&philo->philo_mutex, &philo->meal_timestamp);
 	// printf("ttd %ld", ttd);
 	if (time_since_meal > ttd)
 		return (true);
@@ -43,8 +43,8 @@ static void	*organ_farmer(void *v_global)
 		{
 			if (perished(global->philos + i))
 			{
-				set_bool(&global->global_mutex, &global->stop_dinner, true);
 				logging("has died", global->philos + i, 'd');
+				set_bool(&global->global_mutex, &global->stop_dinner, true);
 			}
 		}
 	}
