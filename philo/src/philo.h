@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:24:00 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/28 16:28:06 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/29 15:47:35 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <pthread.h> //mutexes/threads
 # include <sys/time.h> //gettimeofday
 # include <limits.h> //INTMAX
+# include <errno.h> //mutex/thread error codes
 
 # define RED "\e[0;31m" //pretty colors
 # define GRN "\e[0;32m"
@@ -92,10 +93,11 @@ typedef struct s_philo
 }				t_philo;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~virtual_dinner.c~~~~~~~~~~~~~~~~~~~~~~~ */
+void	*one_philo(void *v_philo);
 void	start_sim(t_global *global);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~routines.c~~~~~~~~~~~~~~~~~~~~~~~ */
 void	eating(t_philo *philo);
-void	thinking(t_philo *philo);
+void	thinking(t_philo *philo, bool first);
 void	sleeping(t_philo *philo);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~get_and_set.c~~~~~~~~~~~~~~~~~~~~~~~ */
 void	set_bool(t_mutex *mtx, bool *dest, bool value);
@@ -106,14 +108,15 @@ void	increase_long(t_mutex *mtx, long *value);
 bool	dinner_done(t_global *global);
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~sync.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+int		ft_msleep(size_t ms);
 void	p_delay(long wait, t_global *global);
 size_t	get_time_ms(void);
 void	wait_for_thread_sync(t_global *global);
 bool	all_threads_running(t_mutex *mtx, long *threads, long num_of_philos);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~wrappers.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	*cool_malloc(size_t bytes);
-void	*mutex(t_mutex *mutex, t_thread_codes code);
-void	*thread(pthread_t *thread, void *(*routine)(void *),
+void	mutex(t_mutex *mutex, t_thread_codes code);
+void	thread(pthread_t *thread, void *(*routine)(void *),
 		void *global, t_thread_codes code);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~init.c~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	init_data(t_global *global);
@@ -122,5 +125,6 @@ void	get_input(t_global *global, int ac, char **av);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~utils.c~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 void	logging(const char *str, t_philo *philo, char flag);
 void	display_error(const char *str);
+void	free_philos(t_global *global);
 
 #endif
