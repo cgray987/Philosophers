@@ -3,7 +3,7 @@ CFLAGS		:= -Wall -Wextra -Werror -g -pthread
 CC 			:= cc
 
 SRC_PATH	:= src/
-SRC			:= get_and_set.c init.c input.c philo.c routines.c sync.c utils.c virtual_dinner.c wrappers.c
+SRC			:= get_and_set.c init.c input.c philo.c routines.c sim_check.c sync.c utils.c virtual_dinner.c wrappers.c
 SRCS		:= $(addprefix $(SRC_PATH), $(SRC))
 
 OBJ_PATH	:= obj/

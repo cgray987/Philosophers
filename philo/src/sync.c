@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 14:24:41 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 17:45:28 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 15:40:18 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,18 +31,20 @@ void	p_delay(long wait_ms, t_global *global)
 	long	remaining;
 
 	start = get_time_us();
-	while ((long)get_time_us() - start < wait_ms * 1e3)
+	while ((long)get_time_us() - start < wait_ms)
 	{
 		if (dinner_done(global))
 			break ;
 		time_since = get_time_us();
-		remaining = wait_ms * 1e3 - time_since;
+		remaining = wait_ms - time_since;
 		if (remaining > 1e4)
 			usleep(remaining / 2);
 		else
 		{
-			while ((long)get_time_us() - start < wait_ms * 1e3)
+			while ((long)get_time_us() - start < wait_ms)
+			{
 				;
+			}
 		}
 	}
 }
@@ -69,16 +71,17 @@ bool	all_threads_running(t_mutex *mtx, long *threads, long num_of_philos)
 	return (ret);
 }
 
+/* used for even groups of philos */
 void	un_sync(t_philo *philo)
 {
 	if (philo->global->nbr_of_philos % 2 == 0)
 	{
 		if (philo->pos % 2 == 0)
-			usleep(100);
+			p_delay(3e4, philo->global);
 	}
 	else
 	{
 		if (philo->pos % 2)
-			thinking(philo, true);
+			thinking(philo, false);
 	}
 }

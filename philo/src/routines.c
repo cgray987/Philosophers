@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:20:46 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 18:03:58 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 15:33:49 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,8 @@ void	eating(t_philo *philo)
 	mutex(&philo->second_fork->fork, LOCK);
 	logging("has taken a fork", philo, 'f');
 	set_long(&philo->philo_mutex, &philo->meal_timestamp, get_time_ms());
-	logging("is eating", philo, 'e');
 	philo->meals_count++;
+	logging("is eating", philo, 'e');
 	p_delay(philo->global->time_to_eat, philo->global);
 	if (philo->global->nbr_of_meals > 0
 		&& philo->global->nbr_of_meals == philo->meals_count)
@@ -47,13 +47,13 @@ void	thinking(t_philo *philo, bool first)
 
 	if (!first)
 		logging("is thinking", philo, 't');
-	if (philo->global->nbr_of_meals % 2 == 0)
+	if (philo->global->nbr_of_philos % 2 == 0)
 		return ;
 	t_think = (philo->global->time_to_eat * 2) - philo->global->time_to_sleep;
 	if (t_think < 0)
-		t_think = 0;
-	usleep(t_think);
-	// p_delay(t_think * 1e-3, philo->global);
+		t_think = 1;
+	// usleep(100);
+	p_delay(t_think * .5, philo->global);
 }
 
 void	sleeping(t_philo *philo)

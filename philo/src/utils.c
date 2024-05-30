@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:40:03 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 17:17:38 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 15:14:32 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	logging(const char *str, t_philo *philo, char flag)
 {
-	size_t	time;
+	long	time;
 
 	if (get_bool(&philo->philo_mutex, &philo->eaten_enough))
 		return ;
@@ -23,15 +23,15 @@ void	logging(const char *str, t_philo *philo, char flag)
 	if (!dinner_done(philo->global))
 	{
 		if (flag == 'd')
-			printf(BRED"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+			printf(BRED"%-5ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
 		else if (flag == 'e')
-			printf(GRN"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+			printf(GRN"%-5ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
 		else if (flag == 's')
-			printf(YEL"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+			printf(YEL"%-5ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
 		else if (flag == 't')
-			printf(BLU"%-ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
+			printf(BLU"%-5ld\t%3d\t%s"RESET"\n", time, philo->pos, str);
 		else
-			printf("%-ld\t%3d\t%s\n", time, philo->pos, str);
+			printf("%-5ld\t%3d\t%s\n", time, philo->pos, str);
 	}
 	mutex(&philo->global->log_mutex, UNLOCK);
 }

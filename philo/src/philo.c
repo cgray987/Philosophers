@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:34:49 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 17:16:02 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 13:49:28 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,10 +59,7 @@ int	main(int ac, char **av)
 		get_input(&global, ac, av);
 		init_data(&global);
 		title(&global);
-		if (global.nbr_of_philos == 1)
-			one_philo(&global.philos[0]);
-		else
-			start_sim(&global);
+		start_sim(&global);
 		free_philos(&global);
 	}
 	else
