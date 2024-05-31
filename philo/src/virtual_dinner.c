@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:57:53 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 16:57:34 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 17:24:17 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,11 @@ static bool	perished(t_philo *philo)
 /* monitor thread
 	- waits for threads to start
 	-loops through nbr of philos, checking each if they're
-	ready for their organs to be harvested */
+	ready for their organs to be harvested
+
+	note: using spinlock to wait for all threads to start
+		causes helgrind to freeze program
+*/
 static void	*organ_farmer(void *v_global)
 {
 	t_global	*global;
@@ -75,6 +79,7 @@ static void	*dinner_routine(void *v_philo)
 	t_philo	*philo;
 
 	philo = (t_philo *)v_philo;
+	// wait_for_thread_sync(philo->global);
 	set_long(&philo->philo_mutex, &philo->meal_timestamp, get_time_ms());
 	increase_long(&philo->global->global_mutex,
 		&philo->global->threads_running);
@@ -99,7 +104,6 @@ void	*one_philo(void *v_philo)
 	t_philo	*philo;
 
 	philo = (t_philo *)v_philo;
-	// wait_for_thread_sync(philo->global);
 	set_long(&philo->philo_mutex, &philo->meal_timestamp, get_time_ms());
 	increase_long(&philo->global->global_mutex,
 		&philo->global->threads_running);

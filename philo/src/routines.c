@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:20:46 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 17:03:58 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 17:08:23 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,6 @@ void	thinking(t_philo *philo, bool first)
 	t_think = (philo->global->time_to_eat * 2) - philo->global->time_to_sleep;
 	if (t_think < 0)
 		t_think = 1;
-	// usleep(100);
 	p_delay(t_think * .5, philo->global);
 }
 

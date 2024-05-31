@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:46:29 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 16:49:54 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 17:07:59 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void	get_input(t_global *global, int ac, char **av)
 	global->nbr_of_philos = ft_atol(av[1]);
 	global->time_to_die = ft_atol(av[2]) * 1e3;
 	global->time_to_eat = ft_atol(av[3]) * 1e3;
-	global->time_to_sleep = ft_atol(av[4])* 1e3;
+	global->time_to_sleep = ft_atol(av[4]) * 1e3;
 	if (global->nbr_of_philos < 1 || global->time_to_die < 0
 		|| global->time_to_eat < 0 || global->time_to_sleep < 0)
 		display_error(NULL);

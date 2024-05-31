@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 14:24:41 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 17:02:51 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 17:22:46 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,7 @@ void	p_delay(long wait_us, t_global *global)
 		else
 		{
 			while ((long)get_time_us() - start < wait_us)
-			{
 				;
-			}
 		}
 	}
 }
