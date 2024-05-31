@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:24:00 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 17:44:03 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 16:59:54 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ bool	dinner_done(t_global *global);
 bool	all_threads_running(t_mutex *mtx, long *threads, long num_of_philos);
 void	wait_for_thread_sync(t_global *global);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~sync.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-void	p_delay(long wait, t_global *global);
+void	p_delay(long wait_us, t_global *global);
 size_t	get_time_ms(void);
 void	un_sync(t_philo *philo);
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~wrappers.c~~~~~~~~~~~~~~~~~~~~~~~~~~ */

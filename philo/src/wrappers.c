@@ -6,12 +6,13 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:59:36 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 14:57:23 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 16:58:51 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/* wrapper for my wrapper, displaying any possible mutex error */
 static void	mutex_error(int status, t_thread_codes code)
 {
 	if (status == 0)
@@ -38,6 +39,7 @@ static void	mutex_error(int status, t_thread_codes code)
 		display_error("Mutex Failure???");
 }
 
+/* wrapper for my wrapper, displays any possible thread error */
 static void	thread_error(int status, t_thread_codes code)
 {
 	if (status == 0)

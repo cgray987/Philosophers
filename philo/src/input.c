@@ -6,12 +6,13 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:46:29 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 15:29:56 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 16:49:54 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/* returns 1 if char is digit */
 static int	ft_isdigit(int c)
 {
 	if ((c >= '0' && c <= '9'))
@@ -19,6 +20,7 @@ static int	ft_isdigit(int c)
 	return (0);
 }
 
+/* iterates through argv, returning 1 if there is a digit */
 static int	check_av_for_non_digit(int ac, char **av)
 {
 	int	i;

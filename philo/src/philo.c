@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:34:49 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 13:49:28 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 16:47:20 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,10 @@ void	subtitle(t_global *global)
 {
 	printf(RESET"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 	printf("|\tNumber of philos: %ld\t\t|\n", global->nbr_of_philos);
-	printf("|\tTime to die: "RED"%ld ms"RESET"\t\t|\n", global->time_to_die);
-	printf("|\tTime to eat: "GRN"%ld ms"RESET"\t\t|\n", global->time_to_eat);
+	printf("|\tTime to die: "RED"%ld ms"RESET"\t\t|\n", global->time_to_die / 1000);
+	printf("|\tTime to eat: "GRN"%ld ms"RESET"\t\t|\n", global->time_to_eat / 1000);
 	printf("|\tTime to sleep: "YEL"%ld ms"RESET"\t\t|\n"RESET,
-		global->time_to_sleep);
+		global->time_to_sleep / 1000);
 	if (global->nbr_of_meals != -1)
 		printf(BWHT"|\tNumber of times to eat: "GRN"%ld"RESET"\t|\n",
 			global->nbr_of_meals);
@@ -47,8 +47,7 @@ void	title(t_global *global)
 }
 
 /*
-	./philo 5 800 200 200 [5]
-	./philo #_of_philos ttd tte tts [#_of_meals]
+	Main function
  */
 int	main(int ac, char **av)
 {

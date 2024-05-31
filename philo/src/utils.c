@@ -6,12 +6,18 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:40:03 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 15:14:32 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 16:53:24 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/* writes to terminal using mutex
+flags are just for colors
+d - died
+e - is eating
+s - is sleeping
+t - is thinking */
 void	logging(const char *str, t_philo *philo, char flag)
 {
 	long	time;
@@ -36,6 +42,8 @@ void	logging(const char *str, t_philo *philo, char flag)
 	mutex(&philo->global->log_mutex, UNLOCK);
 }
 
+/* if no string given, prints formatted input error msg
+otherwise, print string and exit failure */
 void	display_error(const char *str)
 {
 	if (!str)
@@ -55,6 +63,8 @@ void	display_error(const char *str)
 	exit(EXIT_FAILURE);
 }
 
+/* called in main function, iterates thru global destroying each philo mutex
+frees all global mutexes and fork/philo arrays*/
 void	free_philos(t_global *global)
 {
 	t_philo	*philo;

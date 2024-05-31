@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 12:58:47 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/29 17:06:48 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 16:48:32 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ static void	assign_forks(t_philo *philo, t_fork *forks, int fork_pos)
 	}
 }
 
+/* iterates through each philo, initializing data
+and mutex for each philo struct */
 static void	init_philo(t_global *global)
 {
 	int		i;
@@ -72,6 +74,7 @@ static void	init_philo(t_global *global)
 	}
 }
 
+/* initialize global struct and call function to init philos from global */
 void	init_data(t_global *global)
 {
 	long	np;
@@ -83,6 +86,7 @@ void	init_data(t_global *global)
 	global->threads_running = 0;
 	global->philos = cool_malloc(sizeof(t_philo) * np);
 	global->forks = cool_malloc(sizeof(t_fork) * np);
+	global->start_time = get_time_ms();
 	mutex(&global->global_mutex, INIT);
 	mutex(&global->log_mutex, INIT);
 	i = -1;

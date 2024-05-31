@@ -6,7 +6,7 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 15:20:46 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 15:33:49 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 17:03:58 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,10 @@ void	eating(t_philo *philo)
 	mutex(&philo->second_fork->fork, UNLOCK);
 }
 
+/* first flag used only for un sync routine to not print
+'is thinking' before regular routines.
+if odd group, use small mandatory think time to make sure
+philos don't immediately eat twice in a row */
 void	thinking(t_philo *philo, bool first)
 {
 	long	t_think;
@@ -56,6 +60,7 @@ void	thinking(t_philo *philo, bool first)
 	p_delay(t_think * .5, philo->global);
 }
 
+/* 😴 */
 void	sleeping(t_philo *philo)
 {
 	logging("is sleeping", philo, 's');

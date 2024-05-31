@@ -6,12 +6,13 @@
 /*   By: cgray <cgray@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:57:53 by cgray             #+#    #+#             */
-/*   Updated: 2024/05/30 15:37:26 by cgray            ###   ########.fr       */
+/*   Updated: 2024/05/30 16:57:34 by cgray            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
+/* checks if philo is dead (it's been too long since their last meal) */
 static bool	perished(t_philo *philo)
 {
 	long	time_since_meal;
@@ -28,6 +29,10 @@ static bool	perished(t_philo *philo)
 	return (false);
 }
 
+/* monitor thread
+	- waits for threads to start
+	-loops through nbr of philos, checking each if they're
+	ready for their organs to be harvested */
 static void	*organ_farmer(void *v_global)
 {
 	t_global	*global;
@@ -60,14 +65,16 @@ go thru eat/sleep/think routines if not dead or full
 
 	use this line if wanting to show data race
 	philo->global->threads_running++;
+
+use for thread sync (without helgrind)
+	wait_for_thread_sync(philo->global);
+	set_long(&philo->philo_mutex, &philo->global->start_time, get_time_ms());
 */
 static void	*dinner_routine(void *v_philo)
 {
 	t_philo	*philo;
 
 	philo = (t_philo *)v_philo;
-	wait_for_thread_sync(philo->global);
-	// set_long(&philo->philo_mutex, &philo->global->start_time, get_time_ms());
 	set_long(&philo->philo_mutex, &philo->meal_timestamp, get_time_ms());
 	increase_long(&philo->global->global_mutex,
 		&philo->global->threads_running);
@@ -83,18 +90,22 @@ static void	*dinner_routine(void *v_philo)
 	return (NULL);
 }
 
+/* edge case for one philo -- takes the only fork and
+spinlocks until monitor kills them
+
+note-helgrind doesn't like spinlocks and freezes program*/
 void	*one_philo(void *v_philo)
 {
 	t_philo	*philo;
 
 	philo = (t_philo *)v_philo;
-	wait_for_thread_sync(philo->global);
+	// wait_for_thread_sync(philo->global);
 	set_long(&philo->philo_mutex, &philo->meal_timestamp, get_time_ms());
 	increase_long(&philo->global->global_mutex,
 		&philo->global->threads_running);
 	logging("has taken a fork", philo, 'f');
 	while (!dinner_done(philo->global))
-		p_delay(100, philo->global);
+		;
 	return (NULL);
 }
 
@@ -114,14 +125,13 @@ void	start_sim(t_global *global)
 			thread(&global->philos[i].philo_thread_id,
 				dinner_routine, &global->philos[i], CREATE);
 	}
-	p_delay(100, global);
-	set_long(&global->global_mutex, &global->start_time, get_time_ms());
+	// p_delay(100, global);
+	// set_long(&global->global_mutex, &global->start_time, get_time_ms());
 	set_bool(&global->global_mutex, &global->thread_sync, true);
 	thread(&global->organ_farmer, organ_farmer, global, CREATE);
 	i = -1;
 	while (++i < global->nbr_of_philos)
 		thread(&global->philos[i].philo_thread_id, NULL, NULL, JOIN);
 	set_bool(&global->global_mutex, &global->stop_dinner, true);
-	usleep(100);
 	thread(&global->organ_farmer, NULL, NULL, JOIN);
 }
